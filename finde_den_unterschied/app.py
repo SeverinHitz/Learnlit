@@ -86,37 +86,24 @@ with col2:
 if "letzte_meldung" not in st.session_state:
     st.session_state["letzte_meldung"] = ""
 
-# Zusammengefasste Klickverarbeitung (Bild 1 oder Bild 2)
+# Initialisiere Platzhalter
 x1 = y1 = x2 = y2 = None
-aktueller_klick = None
-quelle = ""
 
+# Klick auf Originalbild
 if click1:
     x_disp, y_disp = click1["x"], click1["y"]
     x1, y1 = convert_display_to_original_coords(x_disp, y_disp, img1, image_width)
-    x, y = x1, y1
-    aktueller_klick = Point(x1, y1)
-    quelle = "Original"
+    point1 = Point(x1, y1)
+    matches1 = diff_gdf[diff_gdf.contains(point1)]
 
-elif click2:
-    x_disp, y_disp = click2["x"], click2["y"]
-    x2, y2 = convert_display_to_original_coords(x_disp, y_disp, img2, image_width)
-    x, y = x2, y2
-    aktueller_klick = Point(x2, y2)
-    quelle = "Verändert"
+    st.write(f"🖱️ Geklickt im **Originalbild**: x={x1:.2f}, y={y1:.2f}")
 
-# Prüfe Klick
-if aktueller_klick:
-    st.write(f"🖱️ Geklickt in **{quelle}**, Koordinaten: x={x:.2f}, y={y:.2f}")
-    matches = diff_gdf[diff_gdf.contains(aktueller_klick)]
-
-    if not matches.empty:
-        label = matches.iloc[0]["label"]
+    if not matches1.empty:
+        label = matches1.iloc[0]["label"]
         if label not in st.session_state["gefunden"]:
             st.session_state["gefunden"].append(label)
 
-            zeitpunkt = time.time()
-            sekunden = round(zeitpunkt - st.session_state["start_time"], 2)
+            sekunden = round(time.time() - st.session_state["start_time"], 2)
             st.session_state["found_data"] = pd.concat(
                 [
                     st.session_state["found_data"],
@@ -124,7 +111,7 @@ if aktueller_klick:
                         [
                             {
                                 "label": label,
-                                "timestamp": zeitpunkt,
+                                "timestamp": time.time(),
                                 "sekunden_seit_start": sekunden,
                             }
                         ]
@@ -132,14 +119,52 @@ if aktueller_klick:
                 ],
                 ignore_index=True,
             )
-
-        # Zeige Lerntext einmalig in grünem Kasten
-        text = lerntexte.get(label, f"⚠️ Kein Lerntext für `{label}` gefunden.")
-        st.session_state["letzte_meldung"] = text
+        st.session_state["letzte_meldung"] = lerntexte.get(
+            label, "⚠️ Kein Lerntext vorhanden."
+        )
     else:
         st.session_state["letzte_meldung"] = (
-            "❌ Kein Unterschied an dieser Stelle gefunden."
+            "❌ Kein Unterschied im Originalbild gefunden."
         )
+
+# Klick auf Klimabild
+if click2:
+    x_disp, y_disp = click2["x"], click2["y"]
+    x2, y2 = convert_display_to_original_coords(x_disp, y_disp, img2, image_width)
+    point2 = Point(x2, y2)
+    matches2 = diff_gdf[diff_gdf.contains(point2)]
+
+    st.write(f"🖱️ Geklickt im **Klimawandelbild**: x={x2:.2f}, y={y2:.2f}")
+
+    if not matches2.empty:
+        label = matches2.iloc[0]["label"]
+        if label not in st.session_state["gefunden"]:
+            st.session_state["gefunden"].append(label)
+
+            sekunden = round(time.time() - st.session_state["start_time"], 2)
+            st.session_state["found_data"] = pd.concat(
+                [
+                    st.session_state["found_data"],
+                    pd.DataFrame(
+                        [
+                            {
+                                "label": label,
+                                "timestamp": time.time(),
+                                "sekunden_seit_start": sekunden,
+                            }
+                        ]
+                    ),
+                ],
+                ignore_index=True,
+            )
+        st.session_state["letzte_meldung"] = lerntexte.get(
+            label, "⚠️ Kein Lerntext vorhanden."
+        )
+    else:
+        st.session_state["letzte_meldung"] = (
+            "❌ Kein Unterschied im Klimabild gefunden."
+        )
+
 
 # Zeige aktuelle Meldung (immer nur die letzte)
 if st.session_state["letzte_meldung"]:
