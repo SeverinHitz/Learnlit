@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<annotations>
+  <version>1.1</version>
+  <meta>
+    <task>
+      <id>1397337</id>
+      <name>Image Label</name>
+      <size>2</size>
+      <mode>annotation</mode>
+      <overlap>0</overlap>
+      <bugtracker></bugtracker>
+      <created>2025-05-19 17:32:25.049905+00:00</created>
+      <updated>2025-05-19 18:35:59.929002+00:00</updated>
+      <subset>default</subset>
+      <start_frame>0</start_frame>
+      <stop_frame>1</stop_frame>
+      <frame_filter></frame_filter>
+      <segments>
+        <segment>
+          <id>2484539</id>
+          <start>0</start>
+          <stop>1</stop>
+          <url>https://app.cvat.ai/api/jobs/2482262</url>
+        </segment>
+      </segments>
+      <owner>
+        <username>SeverinHitz</username>
+        <email>sevihitz@bluewin.ch</email>
+      </owner>
+      <assignee></assignee>
+      <labels>
+        <label>
+          <name>Solar</name>
+          <color>#4422fd</color>
+          <type>polygon</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Wind</name>
+          <color>#ef6a84</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Borke</name>
+          <color>#cc9933</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Verbau</name>
+          <color>#adadad</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Hitze</name>
+          <color>#44e84c</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Neubau</name>
+          <color>#23ff52</color>
+          <type>polygon</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Rückhalt</name>
+          <color>#007fff</color>
+          <type>polygon</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Brand</name>
+          <color>#fa3253</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+      </labels>
+    </task>
+    <dumped>2025-05-19 18:36:14.307741+00:00</dumped>
+  </meta>
+  <image id="0" name="Dorf_unverändert.png" width="1536" height="1024">
+  </image>
+  <image id="1" name="Dorf_verändert.png" width="1536" height="1024">
+    <polygon label="Solar" source="manual" occluded="0" points="302.86,512.01;100.40,413.29;3.35,404.92;0.01,538.78;240.95,525.39" z_order="0">
+    </polygon>
+    <polygon label="Wind" source="manual" occluded="0" points="1296.74,63.59;1261.60,123.82;1264.95,199.12;1345.26,217.52;1338.57,123.82" z_order="0">
+    </polygon>
+    <polygon label="Borke" source="manual" occluded="0" points="562.32,431.28;443.47,393.18;448.04,501.37;568.42,531.85" z_order="0">
+    </polygon>
+    <polygon label="Verbau" source="manual" occluded="0" points="268.23,385.56;80.80,370.32;85.37,406.90;117.37,412.99;252.99,452.61;289.56,448.04" z_order="0">
+    </polygon>
+    <polygon label="Hitze" source="manual" occluded="0" points="1435.47,798.51;1258.71,786.32;1188.61,833.56;1368.42,862.51" z_order="0">
+    </polygon>
+    <polygon label="Neubau" source="manual" occluded="0" points="1115.47,717.75;1194.71,685.75;1184.04,611.09;984.42,611.09;978.32,697.94" z_order="0">
+    </polygon>
+    <polygon label="Rückhalt" source="manual" occluded="0" points="216.42,812.23;283.47,821.37;388.61,810.70;426.70,787.85;414.51,769.56;330.70,763.47;233.18,775.66;192.04,786.32" z_order="0">
+    </polygon>
+    <polygon label="Brand" source="manual" occluded="0" points="188.99,153.94;297.18,179.85;307.85,166.13;201.18,117.37;155.47,108.23;161.56,129.56" z_order="0">
+    </polygon>
+  </image>
+</annotations>

@@ -1,0 +1,8 @@
+streamlit
+streamlit-image-coordinates
+streamlit-js-eval
+pandas
+geopandas
+matplotlib
+shapely
+Pillow
