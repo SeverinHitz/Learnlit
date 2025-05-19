@@ -3,18 +3,28 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 from shapely.geometry import Polygon
 import xml.etree.ElementTree as ET
+import os
+from pathlib import Path
+
+
+def get_base_path():
+    # Wenn deployed, wird von Repo-Root aus gestartet
+    if "HOME" in os.environ and "streamlit" in os.environ.get("HOME", ""):
+        return Path("finde_den_unterschied/data")  # für Streamlit Cloud
+    else:
+        return Path(__file__).parent / "data"  # für lokalen Start aus Unterordner
 
 
 def load_images(scene):
-    path_1 = f"data/{scene}_unverändert.png"
-    path_2 = f"data/{scene}_verändert.png"
-    img1 = Image.open(path_1)
-    img2 = Image.open(path_2)
-    return img1, img2
+    base_path = get_base_path()
+    path_1 = base_path / f"{scene}_unverändert.png"
+    path_2 = base_path / f"{scene}_verändert.png"
+    return Image.open(path_1), Image.open(path_2)
 
 
 def parse_cvat_xml(scene):
-    xml_path = f"data/{scene}.xml"
+    base_path = get_base_path()
+    xml_path = base_path / f"{scene}.xml"
     image_name = f"{scene}_verändert.png"
     tree = ET.parse(xml_path)
     root = tree.getroot()
@@ -41,7 +51,8 @@ def parse_cvat_xml(scene):
 
 def load_lerntexte(scene) -> dict:
     """Parst eine Markdown-Datei mit # Keys und zugehörigen Texten."""
-    path = f"data/{scene}_lerntexte.md"
+    base_path = get_base_path()
+    path = base_path / f"{scene}_lerntexte.md"
     with open(path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
