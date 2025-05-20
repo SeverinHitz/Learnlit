@@ -10,7 +10,7 @@ import streamlit as st
 from shapely.geometry import Point
 from streamlit_image_coordinates import streamlit_image_coordinates
 from streamlit_js_eval import streamlit_js_eval
-from utils import (  # type: ignore
+from utils import (
     convert_display_to_original_coords,
     draw_markers_on_images,
     load_images,
@@ -21,7 +21,7 @@ from utils import (  # type: ignore
 
 # ───────────────────────── UI-Setup ─────────────────────────
 st.set_page_config(layout="wide")
-st.title("🧩 Finde den Unterschied")
+st.title("🕵️ Landschaftsdetektiv:in")
 
 win_w = streamlit_js_eval(
     js_expressions="window.innerWidth",
@@ -30,8 +30,7 @@ win_w = streamlit_js_eval(
 )
 if win_w is None:
     win_w = 1200
-image_w: int = int(win_w / 2 * 0.9)
-st.caption(f"Bildbreite: `{image_w}px`")
+image_auto_w: int = int(win_w / 2 * 0.9)
 
 
 # ───────────────────── Session-State init ───────────────────
@@ -41,7 +40,7 @@ def init_state() -> None:
         start_time=None,
         gefunden=[],
         all_pts=[],  # [(x, y, hit_bool), …]
-        found_data=pd.DataFrame(columns=["label", "timestamp", "sekunden_seit_start"]),
+        found_data=pd.DataFrame(columns=["label", "sekunden_seit_start"]),
         letzte_meldung="",
         last_click_original=(None, None),
         last_click_klima=(None, None),
@@ -54,19 +53,40 @@ def init_state() -> None:
 if "spiel_started" not in st.session_state:
     init_state()
 
+# ────────────────────────── Sidebar ─────────────────────────
+with st.sidebar:
+    st.header("⚙️ Einstellungen")
+
+    # Szenen-Auswahl
+    scene = st.selectbox("📸 Szene auswählen", ["Dorf", "Wald", "Stadt"], index=0)
+
+    # Bildbreite anpassen
+    image_w = st.slider(
+        "🖼️ Bildbreite (px)",
+        min_value=100,
+        max_value=800,
+        value=image_auto_w,
+        step=50,
+    )
+
+    # Zeitanzeige
+    if st.session_state["spiel_started"] and st.session_state["start_time"]:
+        elapsed = round(time.time() - st.session_state["start_time"], 1)
+        st.markdown(f"⏱️ **Spielzeit:** {elapsed} Sekunden")
+        st.markdown(f"✅ **Gefunden:** {len(st.session_state['gefunden'])}")
+
+    # Start-Button
+    if not st.session_state.spiel_started:
+        if st.button("▶️ Spiel starten"):
+            st.session_state.spiel_started = True
+            st.session_state.start_time = time.time()
+            st.rerun()
+        st.stop()
 # ───────────────────── Daten laden ──────────────────────────
-scene = "Dorf"
 img_orig, img_klima = load_images(scene)
 gdf_diff = parse_cvat_xml(scene)
 lerntexte = load_lerntexte(scene)
 
-# ───────────────────── Spielstart-Button ────────────────────
-if not st.session_state.spiel_started:
-    if st.button("▶️ Spiel starten"):
-        st.session_state.spiel_started = True
-        st.session_state.start_time = time.time()
-        st.rerun()
-    st.stop()
 
 # ───────────────────── Bilder mit Markern ───────────────────
 img1_show, img2_show = draw_markers_on_images(
@@ -119,7 +139,6 @@ def handle_click(click: dict | None, img, key_last: str, label_side: str) -> Non
                         [
                             {
                                 "label": label,
-                                "timestamp": time.time(),
                                 "sekunden_seit_start": sec,
                             }
                         ]
@@ -153,9 +172,9 @@ if st.session_state.gefunden:
         st.markdown(lerntexte[lbl])
 
 # ───────────────────── Fortschritt / Zeiten ────────────────
-with st.expander("⏱️ Fortschritt & Zeiten"):
+with st.sidebar:
     st.write("Spielzeit:", round(time.time() - st.session_state.start_time, 2), "s")
-    st.dataframe(st.session_state.found_data)
+    st.dataframe(st.session_state.found_data, hide_index=True)
 
 # ───────────────────── Sieg-Animation ──────────────────────
 if (
@@ -165,16 +184,18 @@ if (
     st.session_state.balloons_done = True
 
 # ───────────────────── Neustart ────────────────────────────
-if st.button("🔄 Spiel neustarten"):
-    init_state()
-    st.rerun()
+with st.sidebar:
+    if st.button("🔄 Spiel neustarten"):
+        init_state()
+        st.rerun()
 
 # ───────────────────── Debug-Ansicht ───────────────────────
-fig, ax = plot_images_with_differences(
-    img_orig,
-    img_klima,
-    gdf_diff,
-    st.session_state.last_pt_orig,
-    st.session_state.last_pt_klima,
-)
-st.pyplot(fig)
+with st.expander("🛠️ Debug-Ansicht"):
+    fig, ax = plot_images_with_differences(
+        img_orig,
+        img_klima,
+        gdf_diff,
+        st.session_state.last_pt_orig,
+        st.session_state.last_pt_klima,
+    )
+    st.pyplot(fig)
