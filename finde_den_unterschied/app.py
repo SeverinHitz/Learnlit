@@ -33,7 +33,7 @@ win_w = streamlit_js_eval(
 )
 if win_w is None:
     win_w = 1200
-image_auto_w: int = int(win_w / 2 * 0.9)
+image_auto_w: int = int(win_w / 2)
 
 
 # ───────────────────── Session-State init ───────────────────
@@ -156,11 +156,10 @@ def handle_click(click: dict | None, img, key_last: str, label_side: str) -> Non
     return True
 
 
-rerun = False
-rerun = handle_click(click1, img_orig, "last_click_original", "Originalbild")
-rerun = handle_click(click2, img_klima, "last_click_klima", "Klimabild")
+rerun1 = handle_click(click1, img_orig, "last_click_original", "Originalbild")
+rerun2 = handle_click(click2, img_klima, "last_click_klima", "Klimabild")
 
-if rerun:
+if rerun1 or rerun2:
     st.rerun()
 
 # ───────────────────── Meldung & Lerntexte ─────────────────
