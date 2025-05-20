@@ -18,12 +18,13 @@ from utils import (
     load_lerntexte,
     parse_cvat_xml,
     plot_images_with_differences,
+    get_scene_scaled,
 )
 
 # ───────────────────────── UI-Setup ─────────────────────────
 st.set_page_config(layout="wide")
 st.title("🕵️ Landschaftsdetektiv:in")
-st.logo(get_base_path() / "icon.png", size="large")
+st.logo(get_base_path() / "icon.webp", size="large")
 
 
 win_w = streamlit_js_eval(
@@ -93,19 +94,19 @@ with st.sidebar:
         st.stop()
 
 # ───────────────────── Daten laden ──────────────────────────
-img_orig, img_klima = load_images(scene)
-gdf_diff = parse_cvat_xml(scene)
+img_orig_s, img_klima_s, gdf_diff_s, scale_factor = get_scene_scaled(scene, image_w)
 lerntexte = load_lerntexte(scene)
 
 
 # ───────────────────── Bilder mit Markern ───────────────────
 img1_show, img2_show = draw_markers_on_images(
-    img_orig,
-    img_klima,
+    img_orig_s,
+    img_klima_s,
     st.session_state.all_pts,
-    gdf_diff,
+    gdf_diff_s,
     st.session_state.gefunden,
-    radius=20,
+    radius=20 * scale_factor,
+    lwd_width=int(2 * scale_factor),
 )
 
 col1, col2 = st.columns(2)
@@ -129,7 +130,7 @@ def handle_click(click: dict | None, img, key_last: str, label_side: str) -> Non
         return  # kein neuer Klick
 
     # Treffer-Prüfung
-    hit = not gdf_diff[gdf_diff.contains(Point(x_px, y_px))].empty
+    hit = not gdf_diff_s[gdf_diff_s.contains(Point(x_px, y_px))].empty
     st.session_state.all_pts.append((x_px, y_px, hit))
     st.session_state[key_last] = (x_px, y_px)
     if key_last == "last_click_original":
@@ -138,7 +139,7 @@ def handle_click(click: dict | None, img, key_last: str, label_side: str) -> Non
         st.session_state.last_pt_klima = (x_px, y_px)
 
     if hit:
-        label = gdf_diff[gdf_diff.contains(Point(x_px, y_px))].iloc[0]["label"]
+        label = gdf_diff_s[gdf_diff_s.contains(Point(x_px, y_px))].iloc[0]["label"]
         if label not in st.session_state.gefunden:
             st.session_state.gefunden.append(label)
             sec = round(time.time() - st.session_state.start_time, 2)
@@ -156,8 +157,8 @@ def handle_click(click: dict | None, img, key_last: str, label_side: str) -> Non
     return True
 
 
-rerun1 = handle_click(click1, img_orig, "last_click_original", "Originalbild")
-rerun2 = handle_click(click2, img_klima, "last_click_klima", "Klimabild")
+rerun1 = handle_click(click1, img_orig_s, "last_click_original", "Originalbild")
+rerun2 = handle_click(click2, img_klima_s, "last_click_klima", "Klimabild")
 
 if rerun1 or rerun2:
     st.rerun()
@@ -195,9 +196,9 @@ with st.sidebar:
 if st.session_state.debug_mode:
     with st.expander("🛠️ Debug-Ansicht"):
         fig, ax = plot_images_with_differences(
-            img_orig,
-            img_klima,
-            gdf_diff,
+            img_orig_s,
+            img_klima_s,
+            gdf_diff_s,
             st.session_state.last_pt_orig,
             st.session_state.last_pt_klima,
         )

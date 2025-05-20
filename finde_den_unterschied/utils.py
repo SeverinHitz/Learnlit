@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw
 from shapely.geometry import Polygon
 from shapely.geometry.base import BaseGeometry
 import streamlit as st
+from shapely.affinity import scale as shp_scale
 
 PIXEL_BUFFER = 5.0  # Pixel-Puffer für Klick-Regionen
 
@@ -35,6 +36,35 @@ def load_images(scene: str) -> tuple[Image.Image, Image.Image]:
     )
 
 
+# ────────────────────────── Bild-Skalierung ─────────────────────────
+@st.cache_data(show_spinner=False)
+def get_scene_scaled(
+    scene: str, display_w: int
+) -> tuple[Image.Image, Image.Image, gpd.GeoDataFrame, float]:
+    """
+    Liefert:
+        img_orig_s, img_klima_s – verkleinerte Bilder
+        gdf_s                  – identisch verkleinertes GeoDataFrame
+        s                      – Skalierungsfaktor (display_w / orig_w)
+    """
+    img_orig, img_klima = load_images(scene)
+    # --- Skalfaktor bestimmen ---------------------------------------
+    s = display_w / img_orig.width
+    new_h = int(img_orig.height * s)
+    size = (display_w, new_h)
+
+    img_orig_s = img_orig.resize(size, Image.Resampling.LANCZOS)
+    img_klima_s = img_klima.resize(size, Image.Resampling.LANCZOS)
+
+    # XML nur einmal parsen und danach skalieren
+    gdf = parse_cvat_xml(scene)
+    gdf_s = gdf.copy()
+    gdf_s["geometry"] = gdf_s["geometry"].apply(
+        lambda geom: shp_scale(geom, xfact=s, yfact=s, origin=(0, 0))
+    )
+    return img_orig_s, img_klima_s, gdf_s, s
+
+
 # ────────────────────────── Marker-Overlay ──────────────────────────
 def draw_markers_on_images(
     img1: Image.Image,
@@ -43,6 +73,7 @@ def draw_markers_on_images(
     gdf: gpd.GeoDataFrame | None = None,
     gefunden: list[str] | None = None,
     radius: int = 18,
+    lwd_width: int = 2,
 ) -> tuple[Image.Image, Image.Image]:
     col_hit, col_miss = (0, 200, 0), (230, 0, 0)
     poly_fill = (0, 255, 0, 80)  # halb­transparent
@@ -59,7 +90,7 @@ def draw_markers_on_images(
                 (x - radius, y - radius, x + radius, y + radius),
                 fill=c + (140,),
                 outline=c + (255,),
-                width=3,
+                width=lwd_width,
             )
 
         #   2) Polygone auf separate, leere Ebene zeichnen
