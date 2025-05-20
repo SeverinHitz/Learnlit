@@ -57,8 +57,6 @@ if not st.session_state["spiel_started"]:
     st.stop()
 
 
-# Feste Anzeigebreite, damit Umrechnung funktioniert
-
 key_original = f"original_{image_width}"
 key_klima = f"klima_{image_width}"
 
@@ -86,20 +84,40 @@ with col2:
 if "letzte_meldung" not in st.session_state:
     st.session_state["letzte_meldung"] = ""
 
-# Initialisiere Platzhalter
-x1 = y1 = x2 = y2 = None
+# ---------------- Klick-Verarbeitung ----------------
+# Merke dir letzte Koordinaten pro Bild in session_state
+if "last_click_original" not in st.session_state:
+    st.session_state["last_click_original"] = (None, None)
+if "last_click_klima" not in st.session_state:
+    st.session_state["last_click_klima"] = (None, None)
 
-# Klick auf Originalbild
-if click1:
-    x_disp, y_disp = click1["x"], click1["y"]
-    x1, y1 = convert_display_to_original_coords(x_disp, y_disp, img1, image_width)
-    point1 = Point(x1, y1)
-    matches1 = diff_gdf[diff_gdf.contains(point1)]
 
-    st.write(f"🖱️ Geklickt im **Originalbild**: x={x1:.2f}, y={y1:.2f}")
+def handle_click(click, img, key_side, label_side):
+    """Verarbeite Klick, wenn Koordinate neu ist. Liefert True, falls etwas gemacht wurde."""
+    if not click:
+        return False  # nichts geklickt
 
-    if not matches1.empty:
-        label = matches1.iloc[0]["label"]
+    x_disp, y_disp = click["x"], click["y"]
+    x_px, y_px = convert_display_to_original_coords(x_disp, y_disp, img, image_width)
+
+    # War das schon der letzte verarbeitete Klick?
+    if (x_px, y_px) == st.session_state[key_side]:
+        return False  # alter Klick, ignorieren
+
+    # Neuen Klick merken
+    st.session_state[key_side] = (x_px, y_px)
+    if key_side == "last_click_original":
+        st.session_state["x1"], st.session_state["y1"] = x_px, y_px
+    elif key_side == "last_click_klima":
+        st.session_state["x2"], st.session_state["y2"] = x_px, y_px
+
+    point = Point(x_px, y_px)
+    matches = diff_gdf[diff_gdf.contains(point)]
+
+    st.write(f"🖱️ Geklickt im **{label_side}**: x={x_px:.2f}, y={y_px:.2f}")
+
+    if not matches.empty:
+        label = matches.iloc[0]["label"]
         if label not in st.session_state["gefunden"]:
             st.session_state["gefunden"].append(label)
 
@@ -124,47 +142,16 @@ if click1:
         )
     else:
         st.session_state["letzte_meldung"] = (
-            "❌ Kein Unterschied im Originalbild gefunden."
+            f"❌ Kein Unterschied im {label_side} gefunden."
         )
 
-# Klick auf Klimabild
-if click2:
-    x_disp, y_disp = click2["x"], click2["y"]
-    x2, y2 = convert_display_to_original_coords(x_disp, y_disp, img2, image_width)
-    point2 = Point(x2, y2)
-    matches2 = diff_gdf[diff_gdf.contains(point2)]
+    return True  # es wurde etwas verarbeitet
 
-    st.write(f"🖱️ Geklickt im **Klimawandelbild**: x={x2:.2f}, y={y2:.2f}")
 
-    if not matches2.empty:
-        label = matches2.iloc[0]["label"]
-        if label not in st.session_state["gefunden"]:
-            st.session_state["gefunden"].append(label)
-
-            sekunden = round(time.time() - st.session_state["start_time"], 2)
-            st.session_state["found_data"] = pd.concat(
-                [
-                    st.session_state["found_data"],
-                    pd.DataFrame(
-                        [
-                            {
-                                "label": label,
-                                "timestamp": time.time(),
-                                "sekunden_seit_start": sekunden,
-                            }
-                        ]
-                    ),
-                ],
-                ignore_index=True,
-            )
-        st.session_state["letzte_meldung"] = lerntexte.get(
-            label, "⚠️ Kein Lerntext vorhanden."
-        )
-    else:
-        st.session_state["letzte_meldung"] = (
-            "❌ Kein Unterschied im Klimabild gefunden."
-        )
-
+# Klicks unabhängig behandeln
+_ = handle_click(click1, img1, "last_click_original", "Originalbild")
+_ = handle_click(click2, img2, "last_click_klima", "Klimawandelbild")
+# ----------------------------------------------------
 
 # Zeige aktuelle Meldung (immer nur die letzte)
 if st.session_state["letzte_meldung"]:
@@ -213,9 +200,10 @@ with st.expander("Unterschiede anzeigen", expanded=False):
         img1,
         img2,
         diff_gdf,
-        x1 if click1 else None,
-        y1 if click1 else None,
-        x2 if click2 else None,
-        y2 if click2 else None,
+        st.session_state.get("x1"),
+        st.session_state.get("y1"),
+        st.session_state.get("x2"),
+        st.session_state.get("y2"),
     )
+
     st.pyplot(fig)
