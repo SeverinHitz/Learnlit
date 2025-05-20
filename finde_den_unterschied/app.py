@@ -142,20 +142,10 @@ def handle_click(click: dict | None, img, key_last: str, label_side: str) -> Non
         if label not in st.session_state.gefunden:
             st.session_state.gefunden.append(label)
             sec = round(time.time() - st.session_state.start_time, 2)
-            st.session_state.found_data = pd.concat(
-                [
-                    st.session_state.found_data,
-                    pd.DataFrame(
-                        [
-                            {
-                                "label": label,
-                                "sekunden_seit_start": sec,
-                            }
-                        ]
-                    ),
-                ],
-                ignore_index=True,
-            )
+            st.session_state.found_data.loc[len(st.session_state.found_data)] = {
+                "label": label,
+                "sekunden_seit_start": sec,
+            }
         st.session_state.letzte_meldung = lerntexte.get(
             label, "⚠️ Kein Lerntext vorhanden."
         )
@@ -163,12 +153,15 @@ def handle_click(click: dict | None, img, key_last: str, label_side: str) -> Non
         st.session_state.letzte_meldung = (
             f"❌ Kein Unterschied im {label_side} gefunden."
         )
+    return True
 
+
+rerun = False
+rerun = handle_click(click1, img_orig, "last_click_original", "Originalbild")
+rerun = handle_click(click2, img_klima, "last_click_klima", "Klimabild")
+
+if rerun:
     st.rerun()
-
-
-handle_click(click1, img_orig, "last_click_original", "Originalbild")
-handle_click(click2, img_klima, "last_click_klima", "Klimabild")
 
 # ───────────────────── Meldung & Lerntexte ─────────────────
 if st.session_state.letzte_meldung.startswith("❌"):
