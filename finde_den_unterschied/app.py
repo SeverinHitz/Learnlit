@@ -1,209 +1,180 @@
+"""Streamlit-App  ▸  Finde den Unterschied (Klimawandel)"""
+
+from __future__ import annotations
+
+import time
+from pathlib import Path
+
+import pandas as pd
 import streamlit as st
 from shapely.geometry import Point
-import time
-import pandas as pd
-from utils import (
-    load_images,
-    parse_cvat_xml,
-    plot_images_with_differences,
-    convert_display_to_original_coords,
-)
 from streamlit_image_coordinates import streamlit_image_coordinates
 from streamlit_js_eval import streamlit_js_eval
-from utils import load_lerntexte
+from utils import (  # type: ignore
+    convert_display_to_original_coords,
+    draw_markers_on_images,
+    load_images,
+    load_lerntexte,
+    parse_cvat_xml,
+    plot_images_with_differences,
+)
 
-# Setup der Streamlit-App
+# ───────────────────────── UI-Setup ─────────────────────────
 st.set_page_config(layout="wide")
 st.title("🧩 Finde den Unterschied")
-window_width = streamlit_js_eval(
+
+win_w = streamlit_js_eval(
     js_expressions="window.innerWidth",
     key="WIDTH",
     debounce=0,
 )
-if window_width is None:
-    st.warning(
-        "📏 Fensterbreite konnte noch nicht ermittelt werden – Standardwert wird verwendet."
+if win_w is None:
+    win_w = 1200
+image_w: int = int(win_w / 2 * 0.9)
+st.caption(f"Bildbreite: `{image_w}px`")
+
+
+# ───────────────────── Session-State init ───────────────────
+def init_state() -> None:
+    st.session_state.update(
+        spiel_started=False,
+        start_time=None,
+        gefunden=[],
+        all_pts=[],  # [(x, y, hit_bool), …]
+        found_data=pd.DataFrame(columns=["label", "timestamp", "sekunden_seit_start"]),
+        letzte_meldung="",
+        last_click_original=(None, None),
+        last_click_klima=(None, None),
+        last_pt_orig=None,
+        last_pt_klima=None,
+        balloons_done=False,
     )
-    window_width = 1600  # Fallback-Breite
-image_width = int(window_width / 2 * 0.9)
-st.markdown(f"📐 Automatisch gesetzte Bildbreite: `{image_width}` px")
-# Timer Initialisiere Session-State bei erstem Laden
+
+
 if "spiel_started" not in st.session_state:
-    st.session_state["spiel_started"] = False
-    st.session_state["start_time"] = None
-    st.session_state["gefunden"] = []
-    st.session_state["found_data"] = pd.DataFrame(
-        columns=["label", "timestamp", "sekunden_seit_start"]
-    )
-    st.session_state["letzte_meldung"] = ""
+    init_state()
 
-
-# Lade Bilder und Unterschiede
+# ───────────────────── Daten laden ──────────────────────────
 scene = "Dorf"
-img1, img2 = load_images(scene)
-diff_gdf = parse_cvat_xml(scene)
-
-# Lade Lerntexte
+img_orig, img_klima = load_images(scene)
+gdf_diff = parse_cvat_xml(scene)
 lerntexte = load_lerntexte(scene)
-if "gefunden" not in st.session_state:
-    st.session_state["gefunden"] = []
 
-
-if not st.session_state["spiel_started"]:
+# ───────────────────── Spielstart-Button ────────────────────
+if not st.session_state.spiel_started:
     if st.button("▶️ Spiel starten"):
-        st.session_state["spiel_started"] = True
-        st.session_state["start_time"] = time.time()
+        st.session_state.spiel_started = True
+        st.session_state.start_time = time.time()
         st.rerun()
     st.stop()
 
+# ───────────────────── Bilder mit Markern ───────────────────
+img1_show, img2_show = draw_markers_on_images(
+    img_orig,
+    img_klima,
+    st.session_state.all_pts,
+    gdf_diff,
+    st.session_state.gefunden,
+    radius=20,
+)
 
-key_original = f"original_{image_width}"
-key_klima = f"klima_{image_width}"
-
-
-# Zeige Bilder nebeneinander
 col1, col2 = st.columns(2)
-
 with col1:
-    st.subheader("Original")
     click1 = streamlit_image_coordinates(
-        img1,
-        key=key_original,
-        width=image_width,
+        img1_show, key=f"orig_{image_w}", width=image_w
     )
-
 with col2:
-    st.subheader("Klimawandel-Version")
     click2 = streamlit_image_coordinates(
-        img2,
-        key=key_klima,
-        width=image_width,
+        img2_show, key=f"klima_{image_w}", width=image_w
     )
 
-# Initialisiere Session-State für aktuelle Meldung
-if "letzte_meldung" not in st.session_state:
-    st.session_state["letzte_meldung"] = ""
 
-# ---------------- Klick-Verarbeitung ----------------
-# Merke dir letzte Koordinaten pro Bild in session_state
-if "last_click_original" not in st.session_state:
-    st.session_state["last_click_original"] = (None, None)
-if "last_click_klima" not in st.session_state:
-    st.session_state["last_click_klima"] = (None, None)
-
-
-def handle_click(click, img, key_side, label_side):
-    """Verarbeite Klick, wenn Koordinate neu ist. Liefert True, falls etwas gemacht wurde."""
+# ───────────────────── Klick-Handler ────────────────────────
+def handle_click(click: dict | None, img, key_last: str, label_side: str) -> None:
     if not click:
-        return False  # nichts geklickt
-
+        return
     x_disp, y_disp = click["x"], click["y"]
-    x_px, y_px = convert_display_to_original_coords(x_disp, y_disp, img, image_width)
+    x_px, y_px = convert_display_to_original_coords(x_disp, y_disp, img, image_w)
+    if (x_px, y_px) == st.session_state[key_last]:
+        return  # kein neuer Klick
 
-    # War das schon der letzte verarbeitete Klick?
-    if (x_px, y_px) == st.session_state[key_side]:
-        return False  # alter Klick, ignorieren
+    # Treffer-Prüfung
+    hit = not gdf_diff[gdf_diff.contains(Point(x_px, y_px))].empty
+    st.session_state.all_pts.append((x_px, y_px, hit))
+    st.session_state[key_last] = (x_px, y_px)
+    if key_last == "last_click_original":
+        st.session_state.last_pt_orig = (x_px, y_px)
+    else:
+        st.session_state.last_pt_klima = (x_px, y_px)
 
-    # Neuen Klick merken
-    st.session_state[key_side] = (x_px, y_px)
-    if key_side == "last_click_original":
-        st.session_state["x1"], st.session_state["y1"] = x_px, y_px
-    elif key_side == "last_click_klima":
-        st.session_state["x2"], st.session_state["y2"] = x_px, y_px
-
-    point = Point(x_px, y_px)
-    matches = diff_gdf[diff_gdf.contains(point)]
-
-    st.write(f"🖱️ Geklickt im **{label_side}**: x={x_px:.2f}, y={y_px:.2f}")
-
-    if not matches.empty:
-        label = matches.iloc[0]["label"]
-        if label not in st.session_state["gefunden"]:
-            st.session_state["gefunden"].append(label)
-
-            sekunden = round(time.time() - st.session_state["start_time"], 2)
-            st.session_state["found_data"] = pd.concat(
+    if hit:
+        label = gdf_diff[gdf_diff.contains(Point(x_px, y_px))].iloc[0]["label"]
+        if label not in st.session_state.gefunden:
+            st.session_state.gefunden.append(label)
+            sec = round(time.time() - st.session_state.start_time, 2)
+            st.session_state.found_data = pd.concat(
                 [
-                    st.session_state["found_data"],
+                    st.session_state.found_data,
                     pd.DataFrame(
                         [
                             {
                                 "label": label,
                                 "timestamp": time.time(),
-                                "sekunden_seit_start": sekunden,
+                                "sekunden_seit_start": sec,
                             }
                         ]
                     ),
                 ],
                 ignore_index=True,
             )
-        st.session_state["letzte_meldung"] = lerntexte.get(
+        st.session_state.letzte_meldung = lerntexte.get(
             label, "⚠️ Kein Lerntext vorhanden."
         )
     else:
-        st.session_state["letzte_meldung"] = (
+        st.session_state.letzte_meldung = (
             f"❌ Kein Unterschied im {label_side} gefunden."
         )
 
-    return True  # es wurde etwas verarbeitet
-
-
-# Klicks unabhängig behandeln
-_ = handle_click(click1, img1, "last_click_original", "Originalbild")
-_ = handle_click(click2, img2, "last_click_klima", "Klimawandelbild")
-# ----------------------------------------------------
-
-# Zeige aktuelle Meldung (immer nur die letzte)
-if st.session_state["letzte_meldung"]:
-    if st.session_state["letzte_meldung"].startswith("❌"):
-        st.warning(st.session_state["letzte_meldung"])
-    else:
-        st.success(st.session_state["letzte_meldung"])
-
-# Zeige alle bisherigen Lernergebnisse
-if st.session_state["gefunden"]:
-    total_diff = len(lerntexte)
-    found_diff = len(st.session_state["gefunden"])
-
-    st.markdown(f"## 📚 Gelerntes ({found_diff} von {total_diff})")
-    for label in st.session_state["gefunden"]:
-        if label in lerntexte:
-            st.markdown(lerntexte[label])
-
-with st.expander("⏱️ Fortschritt & Zeiten", expanded=False):
-    st.write(
-        "⏱️ Zeit seit Spielstart: ",
-        round(time.time() - st.session_state["start_time"], 2),
-        "Sekunden",
-    )
-    st.dataframe(st.session_state["found_data"])
-
-if st.button("🔄 Spiel neustarten"):
-    st.session_state["spiel_started"] = False
-    st.session_state["start_time"] = None
-    st.session_state["gefunden"] = []
-    st.session_state["found_data"] = pd.DataFrame(
-        columns=["label", "timestamp", "sekunden_seit_start"]
-    )
-    st.session_state["letzte_meldung"] = ""
     st.rerun()
 
-# Überprüfen: zeige das Bild mit Bounding-Boxen zur Kontrolle
-with st.expander("Unterschiede anzeigen", expanded=False):
-    st.write(
-        "Hier siehst du die Unterschiede, die in der CVAT-XML-Datei definiert sind."
-    )
-    st.write(
-        "Die roten Umrandungen zeigen die Unterschiede an. Klicke auf die Bilder, um die Koordinaten zu sehen."
-    )
-    fig, ax = plot_images_with_differences(
-        img1,
-        img2,
-        diff_gdf,
-        st.session_state.get("x1"),
-        st.session_state.get("y1"),
-        st.session_state.get("x2"),
-        st.session_state.get("y2"),
-    )
 
-    st.pyplot(fig)
+handle_click(click1, img_orig, "last_click_original", "Originalbild")
+handle_click(click2, img_klima, "last_click_klima", "Klimabild")
+
+# ───────────────────── Meldung & Lerntexte ─────────────────
+if st.session_state.letzte_meldung.startswith("❌"):
+    st.warning(st.session_state.letzte_meldung)
+else:
+    st.success(st.session_state.letzte_meldung)
+
+if st.session_state.gefunden:
+    st.markdown(f"## 📚 Gelerntes ({len(st.session_state.gefunden)}/{len(lerntexte)})")
+    for lbl in st.session_state.gefunden:
+        st.markdown(lerntexte[lbl])
+
+# ───────────────────── Fortschritt / Zeiten ────────────────
+with st.expander("⏱️ Fortschritt & Zeiten"):
+    st.write("Spielzeit:", round(time.time() - st.session_state.start_time, 2), "s")
+    st.dataframe(st.session_state.found_data)
+
+# ───────────────────── Sieg-Animation ──────────────────────
+if (
+    len(st.session_state.gefunden) == len(lerntexte)
+) and not st.session_state.balloons_done:
+    st.balloons()
+    st.session_state.balloons_done = True
+
+# ───────────────────── Neustart ────────────────────────────
+if st.button("🔄 Spiel neustarten"):
+    init_state()
+    st.rerun()
+
+# ───────────────────── Debug-Ansicht ───────────────────────
+fig, ax = plot_images_with_differences(
+    img_orig,
+    img_klima,
+    gdf_diff,
+    st.session_state.last_pt_orig,
+    st.session_state.last_pt_klima,
+)
+st.pyplot(fig)

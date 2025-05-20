@@ -1,105 +1,151 @@
-from PIL import Image
+"""utils.py – Lade-, Zeichen- und Hilfs­funktionen fürs Spiel."""
+
+from __future__ import annotations
+
+import os
+import xml.etree.ElementTree as ET
+from pathlib import Path
+from typing import Iterable
+
 import geopandas as gpd
 import matplotlib.pyplot as plt
+from PIL import Image, ImageDraw
 from shapely.geometry import Polygon
-import xml.etree.ElementTree as ET
-import os
-from pathlib import Path
+from shapely.geometry.base import BaseGeometry
+
+PIXEL_BUFFER = 5.0  # Pixel-Puffer für Klick-Regionen
 
 
-def get_base_path():
-    # Wenn deployed, wird von Repo-Root aus gestartet
-    if "HOME" in os.environ and "streamlit" in os.environ.get("HOME", ""):
-        return Path("finde_den_unterschied/data")  # für Streamlit Cloud
-    else:
-        return Path(__file__).parent / "data"  # für lokalen Start aus Unterordner
+# ────────────────────────── Pfad-Utilities ──────────────────────────
+def _base() -> Path:
+    """Basis­pfad zum *data/*-Ordner – lokal oder Cloud."""
+    if "HOME" in os.environ and "streamlit" in os.environ["HOME"]:
+        return Path("finde_den_unterschied/data")
+    return Path(__file__).parent / "data"
 
 
-def load_images(scene):
-    base_path = get_base_path()
-    path_1 = base_path / f"{scene}_unverändert.png"
-    path_2 = base_path / f"{scene}_verändert.png"
-    return Image.open(path_1), Image.open(path_2)
+# ────────────────────────── Bild-I/O ────────────────────────────────
+def load_images(scene: str) -> tuple[Image.Image, Image.Image]:
+    bp = _base()
+    return (
+        Image.open(bp / f"{scene}_unverändert.png"),
+        Image.open(bp / f"{scene}_verändert.png"),
+    )
 
 
-def parse_cvat_xml(scene):
-    base_path = get_base_path()
-    xml_path = base_path / f"{scene}.xml"
-    image_name = f"{scene}_verändert.png"
-    tree = ET.parse(xml_path)
-    root = tree.getroot()
+# ────────────────────────── Marker-Overlay ──────────────────────────
+def draw_markers_on_images(
+    img1: Image.Image,
+    img2: Image.Image,
+    pts: Iterable[tuple[float, float, bool]],
+    gdf: gpd.GeoDataFrame | None = None,
+    gefunden: list[str] | None = None,
+    radius: int = 18,
+) -> tuple[Image.Image, Image.Image]:
+    col_hit, col_miss = (0, 200, 0), (230, 0, 0)
+    poly_fill = (0, 255, 0, 80)  # halb­transparent
+    poly_outline = (0, 180, 0, 180)
 
-    polygons = []
-    labels = []
+    def _with_overlay(base: Image.Image) -> Image.Image:
+        base_rgba = base.convert("RGBA")
 
-    for image in root.findall("image"):
-        if image.get("name") != image_name:
-            continue  # Skip other images
+        #   1) Marker direkt auf Basisbild
+        draw_base = ImageDraw.Draw(base_rgba, "RGBA")
+        for x, y, ok in pts:
+            c = col_hit if ok else col_miss
+            draw_base.ellipse(
+                (x - radius, y - radius, x + radius, y + radius),
+                fill=c + (140,),
+                outline=c + (255,),
+                width=3,
+            )
 
-        for poly in image.findall("polygon"):
-            label = poly.get("label")
-            points_str = poly.get("points")
-            points = [tuple(map(float, p.split(","))) for p in points_str.split(";")]
-            polygon = Polygon(points)
+        #   2) Polygone auf separate, leere Ebene zeichnen
+        if gdf is not None and gefunden:
+            overlay = Image.new("RGBA", base_rgba.size, (0, 0, 0, 0))
+            draw_ov = ImageDraw.Draw(overlay, "RGBA")
+            for poly in gdf[gdf["label"].isin(gefunden)].geometry:
+                if isinstance(poly, Polygon):
+                    draw_ov.polygon(
+                        list(poly.exterior.coords), fill=poly_fill, outline=poly_outline
+                    )
+            #   3) Overlay mit Alpha über das Basisbild legen
+            base_rgba = Image.alpha_composite(base_rgba, overlay)
 
-            polygons.append(polygon)
-            labels.append(label)
+        return base_rgba
 
-    gdf = gpd.GeoDataFrame({"label": labels, "geometry": polygons})
-    return gdf
+    return _with_overlay(img1), _with_overlay(img2)
 
 
-def load_lerntexte(scene) -> dict:
-    """Parst eine Markdown-Datei mit # Keys und zugehörigen Texten."""
-    base_path = get_base_path()
-    path = base_path / f"{scene}_lerntexte.md"
-    with open(path, "r", encoding="utf-8") as f:
-        lines = f.readlines()
+# ────────────────────────── CVAT-Polygone ───────────────────────────
+def parse_cvat_xml(scene: str, buffer_px: float = PIXEL_BUFFER) -> gpd.GeoDataFrame:
+    """
+    Lies CVAT-XML und gib GeoDataFrame zurück.
+    Jedes Polygon wird optional um `buffer_px` Pixel vergrößert, damit
+    die Treffer­erkennung leichter wird.
+    """
+    xml_path = _base() / f"{scene}.xml"
+    root = ET.parse(xml_path).getroot()
 
-    texte = {}
-    key = None
-    content = []
+    geoms: list[BaseGeometry] = []
+    labels: list[str] = []
 
-    for line in lines:
-        if line.startswith("# "):
+    for img in root.iter("image"):
+        if img.get("name") != f"{scene}_verändert.png":
+            continue
+        for p in img.iter("polygon"):
+            pts = [
+                tuple(map(float, pt.split(","))) for pt in p.get("points").split(";")
+            ]
+            geom = Polygon(pts)
+            if buffer_px:  # kleinen Puffer auf Pixelbasis
+                geom = geom.buffer(buffer_px)
+            geoms.append(geom)
+            labels.append(p.get("label"))
+
+    return gpd.GeoDataFrame({"label": labels, "geometry": geoms})
+
+
+# ────────────────────────── Lerntexte ───────────────────────────────
+def load_lerntexte(scene: str) -> dict[str, str]:
+    f = (_base() / f"{scene}_lerntexte.md").read_text(encoding="utf-8").splitlines()
+    out, key, buf = {}, None, []
+    for ln in f:
+        if ln.startswith("# "):
             if key:
-                texte[key] = "".join(content).strip()
-            key = line[2:].strip()
-            content = []
+                out[key] = "\n".join(buf).strip()
+            key, buf = ln[2:].strip(), []
         else:
-            content.append(line)
-
+            buf.append(ln)
     if key:
-        texte[key] = "".join(content).strip()
+        out[key] = "\n".join(buf).strip()
+    return out
 
-    return texte
 
-
+# ────────────────────────── Debug-Overlay ───────────────────────────
 def plot_images_with_differences(
-    img1, img2, gdf, click_x1=None, click_y1=None, click_x2=None, click_y2=None
+    img1: Image.Image,
+    img2: Image.Image,
+    gdf: gpd.GeoDataFrame,
+    c1: tuple[float, float] | None = None,
+    c2: tuple[float, float] | None = None,
 ):
     fig, ax = plt.subplots(figsize=(10, 8))
     ax.imshow(img1)
     ax.imshow(img2, alpha=0.5)
-
     gdf.boundary.plot(ax=ax, color="red", linewidth=2)
-
-    if click_x1 is not None and click_y1 is not None:
-        ax.plot(click_x1, click_y1, "bo", markersize=10)
-    if click_x2 is not None and click_y2 is not None:
-        ax.plot(click_x2, click_y2, "ro", markersize=10)
-
+    if c1:
+        ax.plot(*c1, "bo", ms=10)
+    if c2:
+        ax.plot(*c2, "ro", ms=10)
     ax.axis("off")
     return fig, ax
 
 
+# ────────────────────────── Koordinaten-Helper ──────────────────────
 def convert_display_to_original_coords(
-    display_x, display_y, original_image, display_width
-):
-    """
-    Wandelt Koordinaten von der skalierten Anzeige (z. B. in Streamlit)
-    zurück in originale Pixelkoordinaten des Bildes.
-    """
-    original_width, original_height = original_image.size
-    scale = original_width / display_width
-    return display_x * scale, display_y * scale
+    x_disp: float, y_disp: float, img: Image.Image, display_w: int
+) -> tuple[float, float]:
+    """Skaliert Klick-Koord. aus Anzeige → Original­pixel."""
+    scale = img.width / display_w
+    return x_disp * scale, y_disp * scale
