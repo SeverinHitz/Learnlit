@@ -11,6 +11,7 @@ from shapely.geometry import Point
 from streamlit_image_coordinates import streamlit_image_coordinates
 from streamlit_js_eval import streamlit_js_eval
 from utils import (
+    get_base_path,
     convert_display_to_original_coords,
     draw_markers_on_images,
     load_images,
@@ -22,6 +23,8 @@ from utils import (
 # ───────────────────────── UI-Setup ─────────────────────────
 st.set_page_config(layout="wide")
 st.title("🕵️ Landschaftsdetektiv:in")
+st.logo(get_base_path() / "icon.png", size="large")
+
 
 win_w = streamlit_js_eval(
     js_expressions="window.innerWidth",

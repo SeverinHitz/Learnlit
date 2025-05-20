@@ -17,7 +17,7 @@ PIXEL_BUFFER = 5.0  # Pixel-Puffer für Klick-Regionen
 
 
 # ────────────────────────── Pfad-Utilities ──────────────────────────
-def _base() -> Path:
+def get_base_path() -> Path:
     """Basis­pfad zum *data/*-Ordner – lokal oder Cloud."""
     if "HOME" in os.environ and "streamlit" in os.environ["HOME"]:
         return Path("finde_den_unterschied/data")
@@ -26,7 +26,7 @@ def _base() -> Path:
 
 # ────────────────────────── Bild-I/O ────────────────────────────────
 def load_images(scene: str) -> tuple[Image.Image, Image.Image]:
-    bp = _base()
+    bp = get_base_path()
     return (
         Image.open(bp / f"{scene}_unverändert.png"),
         Image.open(bp / f"{scene}_verändert.png"),
@@ -84,7 +84,7 @@ def parse_cvat_xml(scene: str, buffer_px: float = PIXEL_BUFFER) -> gpd.GeoDataFr
     Jedes Polygon wird optional um `buffer_px` Pixel vergrößert, damit
     die Treffer­erkennung leichter wird.
     """
-    xml_path = _base() / f"{scene}.xml"
+    xml_path = get_base_path() / f"{scene}.xml"
     root = ET.parse(xml_path).getroot()
 
     geoms: list[BaseGeometry] = []
@@ -108,7 +108,11 @@ def parse_cvat_xml(scene: str, buffer_px: float = PIXEL_BUFFER) -> gpd.GeoDataFr
 
 # ────────────────────────── Lerntexte ───────────────────────────────
 def load_lerntexte(scene: str) -> dict[str, str]:
-    f = (_base() / f"{scene}_lerntexte.md").read_text(encoding="utf-8").splitlines()
+    f = (
+        (get_base_path() / f"{scene}_lerntexte.md")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    )
     out, key, buf = {}, None, []
     for ln in f:
         if ln.startswith("# "):
