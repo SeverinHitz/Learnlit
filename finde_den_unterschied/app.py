@@ -50,6 +50,7 @@ def init_state() -> None:
         last_pt_orig=None,
         last_pt_klima=None,
         balloons_done=False,
+        debug_mode=False,
     )
 
 
@@ -78,6 +79,11 @@ with st.sidebar:
         st.markdown(f"⏱️ **Spielzeit:** {elapsed} Sekunden")
         st.markdown(f"✅ **Gefunden:** {len(st.session_state['gefunden'])}")
 
+    # Debug-Mode
+    st.session_state.debug_mode = st.checkbox(
+        "🛠️ Debug-Mode", value=st.session_state.debug_mode
+    )
+
     # Start-Button
     if not st.session_state.spiel_started:
         if st.button("▶️ Spiel starten"):
@@ -85,6 +91,7 @@ with st.sidebar:
             st.session_state.start_time = time.time()
             st.rerun()
         st.stop()
+
 # ───────────────────── Daten laden ──────────────────────────
 img_orig, img_klima = load_images(scene)
 gdf_diff = parse_cvat_xml(scene)
@@ -193,12 +200,13 @@ with st.sidebar:
         st.rerun()
 
 # ───────────────────── Debug-Ansicht ───────────────────────
-with st.expander("🛠️ Debug-Ansicht"):
-    fig, ax = plot_images_with_differences(
-        img_orig,
-        img_klima,
-        gdf_diff,
-        st.session_state.last_pt_orig,
-        st.session_state.last_pt_klima,
-    )
-    st.pyplot(fig)
+if st.session_state.debug_mode:
+    with st.expander("🛠️ Debug-Ansicht"):
+        fig, ax = plot_images_with_differences(
+            img_orig,
+            img_klima,
+            gdf_diff,
+            st.session_state.last_pt_orig,
+            st.session_state.last_pt_klima,
+        )
+        st.pyplot(fig)
