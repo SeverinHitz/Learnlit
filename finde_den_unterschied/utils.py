@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 from shapely.geometry import Polygon
 from shapely.geometry.base import BaseGeometry
+import streamlit as st
 
 PIXEL_BUFFER = 5.0  # Pixel-Puffer für Klick-Regionen
 
@@ -25,6 +26,7 @@ def get_base_path() -> Path:
 
 
 # ────────────────────────── Bild-I/O ────────────────────────────────
+@st.cache_resource
 def load_images(scene: str) -> tuple[Image.Image, Image.Image]:
     bp = get_base_path()
     return (
@@ -78,6 +80,7 @@ def draw_markers_on_images(
 
 
 # ────────────────────────── CVAT-Polygone ───────────────────────────
+@st.cache_resource
 def parse_cvat_xml(scene: str, buffer_px: float = PIXEL_BUFFER) -> gpd.GeoDataFrame:
     """
     Lies CVAT-XML und gib GeoDataFrame zurück.
@@ -107,6 +110,7 @@ def parse_cvat_xml(scene: str, buffer_px: float = PIXEL_BUFFER) -> gpd.GeoDataFr
 
 
 # ────────────────────────── Lerntexte ───────────────────────────────
+@st.cache_resource
 def load_lerntexte(scene: str) -> dict[str, str]:
     f = (
         (get_base_path() / f"{scene}_lerntexte.md")
