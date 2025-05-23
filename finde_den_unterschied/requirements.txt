@@ -6,3 +6,4 @@ geopandas
 matplotlib
 shapely
 Pillow
+gspread
