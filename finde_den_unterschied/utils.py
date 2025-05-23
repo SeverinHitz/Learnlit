@@ -218,9 +218,13 @@ def init_gsheet(sheet_name: str) -> gspread.Spreadsheet:
 
 # ────────────────────────── Ergebnisse speichern ───────────────────
 def save_results_to_gsheet(
-    df: pd.DataFrame, scene: str, sheet_name: str = "Landschaftsdetektiv"
+    df: pd.DataFrame,
+    scene: str,
+    sheet_name: str = "Landschaftsdetektiv",
+    spielname: str | None = None,
+    alter: int | None = None,
 ):
-    """Speichert eine Spielrunde als EINE Zeile mit einer Spalte pro Label."""
+    """Speichert eine Spielrunde als EINE Zeile mit Spalten für Labels, Spielname und Alter."""
     sh = init_gsheet(sheet_name)
 
     try:
@@ -230,27 +234,26 @@ def save_results_to_gsheet(
         ws = sh.add_worksheet(title=scene, rows="1000", cols="50")
         existing_data = []
 
-    # Alle vorhandenen Labels im Sheet bestimmen
+    # Bestehende Spalten ermitteln (außer Zusatzfelder)
     all_labels_existing = set()
     for row in existing_data:
         all_labels_existing.update(row.keys())
-    all_labels_existing.discard("timestamp")
+    all_labels_existing -= {"timestamp", "spielname", "alter"}
 
-    # Labels aus dieser Runde
-    round_labels = df["label"].tolist()
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    # Alle Labels in dieser Runde mit Sekunden
+    # Daten aus dieser Runde
     label_to_time = dict(zip(df["label"], df["sekunden_seit_start"]))
-
-    # Neue vollständige Headerliste erstellen
+    round_labels = df["label"].tolist()
     all_labels = sorted(set(all_labels_existing).union(round_labels))
-    headers = ["timestamp"] + all_labels
 
-    # Neue Zeile mit Sekundenwerten oder leeren Zellen
-    new_row = [timestamp] + [label_to_time.get(lbl, "") for lbl in all_labels]
+    # Header
+    headers = ["timestamp", "spielname", "alter"] + all_labels
 
-    # Wenn sich neue Labels ergeben haben → Header ggf. aktualisieren
+    # Neue Zeile
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    row_values = [timestamp, spielname or "", alter or ""]
+    row_values += [label_to_time.get(lbl, "") for lbl in all_labels]
+
+    # Sheet aktualisieren, falls neue Spalten dazukommen
     if len(existing_data) == 0:
         ws.append_row(headers)
     elif set(headers) != set(existing_data[0].keys()):
@@ -260,5 +263,4 @@ def save_results_to_gsheet(
         ws.clear()
         ws.append_rows(values)
 
-    # Neue Zeile anfügen
-    ws.append_row(new_row)
+    ws.append_row(row_values)

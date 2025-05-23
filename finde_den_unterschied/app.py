@@ -41,6 +41,8 @@ image_auto_w: int = int(win_w / 2)
 def init_state() -> None:
     st.session_state.update(
         spiel_started=False,
+        spielname="",
+        alter=0,
         start_time=None,
         gefunden=[],
         all_pts=[],  # [(x, y, hit_bool), …]
@@ -87,9 +89,18 @@ with st.sidebar:
 
 # ───────────────────── Spiel-Start ─────────────────────────
 if not st.session_state.spiel_started:
+    st.subheader("👤 Spieler:in")
+    spielname = st.text_input("Spitzname oder Spielname", max_chars=20)
+    alter = st.number_input("Alter", min_value=5, max_value=100, step=1)
+
     if st.button("▶️ Spiel starten"):
-        st.session_state.spiel_started = True
-        st.session_state.start_time = time.time()
+        if not spielname:
+            st.warning("Bitte gib einen Spielnamen ein.")
+            st.stop()
+        st.session_state["spiel_started"] = True
+        st.session_state["start_time"] = time.time()
+        st.session_state["spielname"] = spielname
+        st.session_state["alter"] = alter
         st.rerun()
     st.stop()
 
@@ -190,7 +201,12 @@ if (
     try:
         from utils import save_results_to_gsheet
 
-        save_results_to_gsheet(st.session_state.found_data, scene)
+        save_results_to_gsheet(
+            st.session_state.found_data,
+            scene,
+            spielname=st.session_state.get("spielname"),
+            alter=st.session_state.get("alter"),
+        )
         st.toast("✅ Ergebnisse gespeichert.")
     except Exception as e:
         st.warning(f"⚠️ Fehler beim Speichern in Google Sheets: {e}")
