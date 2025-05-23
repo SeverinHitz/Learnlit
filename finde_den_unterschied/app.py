@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import time
-from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+from datetime import datetime
 from shapely.geometry import Point
 from streamlit_image_coordinates import streamlit_image_coordinates
 from streamlit_js_eval import streamlit_js_eval
@@ -14,9 +14,7 @@ from utils import (
     get_base_path,
     convert_display_to_original_coords,
     draw_markers_on_images,
-    load_images,
     load_lerntexte,
-    parse_cvat_xml,
     plot_images_with_differences,
     get_scene_scaled,
 )
@@ -107,6 +105,48 @@ if not st.session_state.spiel_started:
 # ───────────────────── Daten laden ──────────────────────────
 img_orig_s, img_klima_s, gdf_diff_s, scale_factor = get_scene_scaled(scene, image_w)
 lerntexte = load_lerntexte(scene)
+
+
+# ───────────────────── Rückmeldung ─────────────────────────────
+if len(st.session_state.gefunden) == len(lerntexte):
+    st.markdown("## 📝 Und, wie war's für dich?")
+
+    with st.form("rueckmeldung_form", clear_on_submit=False):
+        st.write("#### 😊 Wie gut hat dir das Spiel gefallen?")
+        bewertung = st.feedback("faces", key="bewertung_form")
+
+        st.write("#### 📖 Hast du dabei etwas Neues gelernt?")
+        gelernt = st.feedback("thumbs", key="gelernt_form")
+
+        st.write("#### 💬 Magst du uns noch etwas sagen?")
+        kommentar = st.text_area(
+            "💬 Magst du uns noch etwas sagen? collapsed",
+            placeholder="Z. B. Was hat dir gefallen? Oder was könnten wir besser machen?",
+            key="kommentar_form",
+            label_visibility="collapsed",
+        )
+
+        abgeschickt = st.form_submit_button("✔️ Abschicken")
+
+    if abgeschickt:
+        feedback_data = {
+            "timestamp": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+            "spielname": [st.session_state.get("spielname")],
+            "alter": [st.session_state.get("alter")],
+            "bewertung": [bewertung],
+            "gelernt": [gelernt],
+            "kommentar": [kommentar],
+        }
+
+        feedback_df = pd.DataFrame(feedback_data)
+
+        try:
+            from utils import save_feedback_to_gsheet
+
+            save_feedback_to_gsheet(feedback_df)
+            st.success("🎉 Danke für deine Rückmeldung!")
+        except Exception as e:
+            st.warning(f"⚠️ Leider hat das Abspeichern nicht geklappt: {e}")
 
 
 # ───────────────────── Bilder mit Markern ───────────────────

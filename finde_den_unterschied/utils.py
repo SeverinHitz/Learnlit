@@ -264,3 +264,25 @@ def save_results_to_gsheet(
         ws.append_rows(values)
 
     ws.append_row(row_values)
+
+
+# ────────────────────────── Feedback ─────────────────────────────
+def save_feedback_to_gsheet(
+    df: pd.DataFrame,
+    sheet_name: str = "Landschaftsdetektiv",
+    worksheet: str = "Feedback",
+):
+    """Speichert einzeiliges Feedback-DF in eigenes Worksheet."""
+    sh = init_gsheet(sheet_name)
+
+    try:
+        ws = sh.worksheet(worksheet)
+        existing = ws.get_all_values()
+        existing_rows = len(existing)
+    except gspread.exceptions.WorksheetNotFound:
+        ws = sh.add_worksheet(title=worksheet, rows="1000", cols="10")
+        ws.append_row(df.columns.tolist())
+        existing_rows = 1
+
+    # Nur Datenzeile(n) schreiben
+    ws.insert_rows(df.values.tolist(), row=existing_rows + 1)
