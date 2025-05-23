@@ -246,6 +246,7 @@ if (
             scene,
             spielname=st.session_state.get("spielname"),
             alter=st.session_state.get("alter"),
+            all_pts=st.session_state.get("all_pts"),
         )
         st.toast("✅ Ergebnisse gespeichert.")
     except Exception as e:

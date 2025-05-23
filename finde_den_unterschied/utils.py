@@ -223,6 +223,7 @@ def save_results_to_gsheet(
     sheet_name: str = "Landschaftsdetektiv",
     spielname: str | None = None,
     alter: int | None = None,
+    all_pts: list[tuple[float, float, bool]] | None = None,  # ⬅ hinzugefügt
 ):
     """Speichert eine Spielrunde als EINE Zeile mit Spalten für Labels, Spielname und Alter."""
     sh = init_gsheet(sheet_name)
@@ -246,12 +247,18 @@ def save_results_to_gsheet(
     all_labels = sorted(set(all_labels_existing).union(round_labels))
 
     # Header
-    headers = ["timestamp", "spielname", "alter"] + all_labels
+    headers = ["timestamp", "spielname", "alter"] + all_labels + ["punkte"]
 
     # Neue Zeile
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     row_values = [timestamp, spielname or "", alter or ""]
     row_values += [label_to_time.get(lbl, "") for lbl in all_labels]
+
+    if all_pts:
+        pts_str = "; ".join([f"({int(x)}, {int(y)}, {hit})" for x, y, hit in all_pts])
+    else:
+        pts_str = ""
+    row_values.append(pts_str)
 
     # Sheet aktualisieren, falls neue Spalten dazukommen
     if len(existing_data) == 0:
