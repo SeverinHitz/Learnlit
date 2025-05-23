@@ -7,6 +7,11 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Iterable
 
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
+
+import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
@@ -188,3 +193,72 @@ def convert_display_to_original_coords(
     """Skaliert Klick-Koord. aus Anzeige → Original­pixel."""
     scale = img.width / display_w
     return x_disp * scale, y_disp * scale
+
+
+# ────────────────────────── Google Sheets ──────────────────────────
+def init_gsheet(sheet_name: str) -> gspread.Spreadsheet:
+    """Initialisiert Google Sheet Zugriff mit modernem google-auth Ansatz."""
+    scope = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+    ]
+
+    if "gcp_service_account" in st.secrets:
+        creds_dict = st.secrets["gcp_service_account"]
+        creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
+    else:
+        credentials_path = Path(__file__).parent.parent / "credentials.json"
+        creds = Credentials.from_service_account_file(
+            str(credentials_path), scopes=scope
+        )
+
+    client = gspread.authorize(creds)
+    return client.open(sheet_name)
+
+
+# ────────────────────────── Ergebnisse speichern ───────────────────
+def save_results_to_gsheet(
+    df: pd.DataFrame, scene: str, sheet_name: str = "Landschaftsdetektiv"
+):
+    """Speichert eine Spielrunde als EINE Zeile mit einer Spalte pro Label."""
+    sh = init_gsheet(sheet_name)
+
+    try:
+        ws = sh.worksheet(scene)
+        existing_data = ws.get_all_records()
+    except gspread.exceptions.WorksheetNotFound:
+        ws = sh.add_worksheet(title=scene, rows="1000", cols="50")
+        existing_data = []
+
+    # Alle vorhandenen Labels im Sheet bestimmen
+    all_labels_existing = set()
+    for row in existing_data:
+        all_labels_existing.update(row.keys())
+    all_labels_existing.discard("timestamp")
+
+    # Labels aus dieser Runde
+    round_labels = df["label"].tolist()
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Alle Labels in dieser Runde mit Sekunden
+    label_to_time = dict(zip(df["label"], df["sekunden_seit_start"]))
+
+    # Neue vollständige Headerliste erstellen
+    all_labels = sorted(set(all_labels_existing).union(round_labels))
+    headers = ["timestamp"] + all_labels
+
+    # Neue Zeile mit Sekundenwerten oder leeren Zellen
+    new_row = [timestamp] + [label_to_time.get(lbl, "") for lbl in all_labels]
+
+    # Wenn sich neue Labels ergeben haben → Header ggf. aktualisieren
+    if len(existing_data) == 0:
+        ws.append_row(headers)
+    elif set(headers) != set(existing_data[0].keys()):
+        values = [headers] + [
+            [row.get(h, "") for h in headers] for row in existing_data
+        ]
+        ws.clear()
+        ws.append_rows(values)
+
+    # Neue Zeile anfügen
+    ws.append_row(new_row)

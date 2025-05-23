@@ -85,13 +85,13 @@ with st.sidebar:
         "🛠️ Debug-Mode", value=st.session_state.debug_mode
     )
 
-    # Start-Button
-    if not st.session_state.spiel_started:
-        if st.button("▶️ Spiel starten"):
-            st.session_state.spiel_started = True
-            st.session_state.start_time = time.time()
-            st.rerun()
-        st.stop()
+# ───────────────────── Spiel-Start ─────────────────────────
+if not st.session_state.spiel_started:
+    if st.button("▶️ Spiel starten"):
+        st.session_state.spiel_started = True
+        st.session_state.start_time = time.time()
+        st.rerun()
+    st.stop()
 
 # ───────────────────── Daten laden ──────────────────────────
 img_orig_s, img_klima_s, gdf_diff_s, scale_factor = get_scene_scaled(scene, image_w)
@@ -186,11 +186,20 @@ if (
     st.balloons()
     st.session_state.balloons_done = True
 
+    # Speichern der Ergebnisse in Google Sheets
+    try:
+        from utils import save_results_to_gsheet
+
+        save_results_to_gsheet(st.session_state.found_data, scene)
+        st.toast("✅ Ergebnisse gespeichert.")
+    except Exception as e:
+        st.warning(f"⚠️ Fehler beim Speichern in Google Sheets: {e}")
+
+
 # ───────────────────── Neustart ────────────────────────────
-with st.sidebar:
-    if st.button("🔄 Spiel neustarten"):
-        init_state()
-        st.rerun()
+if st.button("🔄 Spiel neustarten"):
+    init_state()
+    st.rerun()
 
 # ───────────────────── Debug-Ansicht ───────────────────────
 if st.session_state.debug_mode:
