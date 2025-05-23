@@ -39,6 +39,7 @@ image_auto_w: int = int(win_w / 2)
 def init_state() -> None:
     st.session_state.update(
         spiel_started=False,
+        feedback=False,
         spielname="",
         alter=0,
         start_time=None,
@@ -108,7 +109,7 @@ lerntexte = load_lerntexte(scene)
 
 
 # ───────────────────── Rückmeldung ─────────────────────────────
-if len(st.session_state.gefunden) == len(lerntexte):
+def zeige_feedback_formular() -> None:
     st.markdown("## 📝 Und, wie war's für dich?")
 
     with st.form("rueckmeldung_form", clear_on_submit=False):
@@ -120,7 +121,7 @@ if len(st.session_state.gefunden) == len(lerntexte):
 
         st.write("#### 💬 Magst du uns noch etwas sagen?")
         kommentar = st.text_area(
-            "💬 Magst du uns noch etwas sagen? collapsed",
+            "💬 Magst du uns noch etwas sagen?",
             placeholder="Z. B. Was hat dir gefallen? Oder was könnten wir besser machen?",
             key="kommentar_form",
             label_visibility="collapsed",
@@ -144,9 +145,17 @@ if len(st.session_state.gefunden) == len(lerntexte):
             from utils import save_feedback_to_gsheet
 
             save_feedback_to_gsheet(feedback_df)
-            st.success("🎉 Danke für deine Rückmeldung!")
+            st.session_state.feedback = True
+            st.rerun()
         except Exception as e:
             st.warning(f"⚠️ Leider hat das Abspeichern nicht geklappt: {e}")
+
+
+if len(st.session_state.gefunden) == len(lerntexte):
+    if st.session_state.feedback:
+        st.success("🎉 Danke für deine Rückmeldung!")
+    else:
+        zeige_feedback_formular()
 
 
 # ───────────────────── Bilder mit Markern ───────────────────

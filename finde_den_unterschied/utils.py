@@ -223,54 +223,56 @@ def save_results_to_gsheet(
     sheet_name: str = "Landschaftsdetektiv",
     spielname: str | None = None,
     alter: int | None = None,
-    all_pts: list[tuple[float, float, bool]] | None = None,  # ⬅ hinzugefügt
+    all_pts: list[tuple[float, float, bool]] | None = None,
 ):
-    """Speichert eine Spielrunde als EINE Zeile mit Spalten für Labels, Spielname und Alter."""
+    """Speichert eine Spielrunde als EINE Zeile mit Labels als Spalten, plus Spielname, Alter, Punkte."""
     sh = init_gsheet(sheet_name)
 
     try:
         ws = sh.worksheet(scene)
         existing_data = ws.get_all_records()
+        existing_headers = list(existing_data[0].keys()) if existing_data else []
     except gspread.exceptions.WorksheetNotFound:
         ws = sh.add_worksheet(title=scene, rows="1000", cols="50")
         existing_data = []
+        existing_headers = []
 
-    # Bestehende Spalten ermitteln (außer Zusatzfelder)
-    all_labels_existing = set()
-    for row in existing_data:
-        all_labels_existing.update(row.keys())
-    all_labels_existing -= {"timestamp", "spielname", "alter"}
-
-    # Daten aus dieser Runde
+    # Alle Labels aus dem aktuellen Durchlauf
     label_to_time = dict(zip(df["label"], df["sekunden_seit_start"]))
-    round_labels = df["label"].tolist()
-    all_labels = sorted(set(all_labels_existing).union(round_labels))
+    round_labels = sorted(label_to_time.keys())
 
-    # Header
-    headers = ["timestamp", "spielname", "alter"] + all_labels + ["punkte"]
+    # Zielspalten
+    fixed_columns = ["timestamp", "spielname", "alter"]
+    all_columns = fixed_columns + round_labels + ["punkte"]
+
+    # Header aktualisieren, falls sich etwas verändert hat
+    if existing_headers != all_columns:
+        old_rows = (
+            [[row.get(h, "") for h in all_columns] for row in existing_data]
+            if existing_data
+            else []
+        )
+        ws.clear()
+        ws.append_row(all_columns)
+        if old_rows:
+            ws.append_rows(old_rows)
 
     # Neue Zeile
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    row_values = [timestamp, spielname or "", alter or ""]
-    row_values += [label_to_time.get(lbl, "") for lbl in all_labels]
+    zeile = [timestamp, spielname or "", alter or ""]
 
-    if all_pts:
-        pts_str = "; ".join([f"({int(x)}, {int(y)}, {hit})" for x, y, hit in all_pts])
-    else:
-        pts_str = ""
-    row_values.append(pts_str)
+    # Zeitwerte passend einsortieren
+    zeile += [label_to_time.get(label, "") for label in round_labels]
 
-    # Sheet aktualisieren, falls neue Spalten dazukommen
-    if len(existing_data) == 0:
-        ws.append_row(headers)
-    elif set(headers) != set(existing_data[0].keys()):
-        values = [headers] + [
-            [row.get(h, "") for h in headers] for row in existing_data
-        ]
-        ws.clear()
-        ws.append_rows(values)
+    # Punkte serialisieren
+    pts_str = (
+        "; ".join([f"({int(x)}, {int(y)}, {hit})" for x, y, hit in all_pts])
+        if all_pts
+        else ""
+    )
+    zeile.append(pts_str)
 
-    ws.append_row(row_values)
+    ws.append_row(zeile)
 
 
 # ────────────────────────── Feedback ─────────────────────────────
