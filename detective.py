@@ -10,7 +10,7 @@ from datetime import datetime
 from shapely.geometry import Point
 from streamlit_image_coordinates import streamlit_image_coordinates
 from streamlit_js_eval import streamlit_js_eval
-from utils import (
+from detective_utils import (
     get_base_path,
     convert_display_to_original_coords,
     draw_markers_on_images,
@@ -142,7 +142,7 @@ def zeige_feedback_formular() -> None:
         feedback_df = pd.DataFrame(feedback_data)
 
         try:
-            from utils import save_feedback_to_gsheet
+            from google_utils import save_feedback_to_gsheet
 
             save_feedback_to_gsheet(feedback_df)
             st.session_state.feedback = True
@@ -248,7 +248,7 @@ if (
 
     # Speichern der Ergebnisse in Google Sheets
     try:
-        from utils import save_results_to_gsheet
+        from google_utils import save_results_to_gsheet
 
         save_results_to_gsheet(
             st.session_state.found_data,
