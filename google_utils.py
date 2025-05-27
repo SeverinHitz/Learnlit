@@ -28,7 +28,10 @@ def init_gsheet(sheet_name: str) -> gspread.Spreadsheet:
 
 
 # ────────────────────────── Ergebnisse speichern ───────────────────
-def save_results_to_gsheet(
+
+
+# Landschaftsdetektiv
+def save_compare_results_to_gsheet(
     df: pd.DataFrame,
     scene: str,
     sheet_name: str = "Landschaftsdetektiv",
@@ -84,6 +87,39 @@ def save_results_to_gsheet(
     zeile.append(pts_str)
 
     ws.append_row(zeile)
+
+
+# Landschaftsdesigner
+def save_slider_results_to_gsheet(
+    scene: str,
+    slider_values: list[int],
+    sheet_name: str = "Landschaftsdesigner",
+    worksheet_name: str = "Sliderdaten",
+):
+    """Speichert timestamp, Szene, und Sliderwerte (S1–S4) in ein Worksheet."""
+    sh = init_gsheet(sheet_name)
+
+    try:
+        ws = sh.worksheet(worksheet_name)
+        existing = ws.get_all_values()
+        existing_headers = existing[0] if existing else []
+    except gspread.exceptions.WorksheetNotFound:
+        ws = sh.add_worksheet(title=worksheet_name, rows="1000", cols="10")
+        existing_headers = []
+
+    # Zielspalten
+    columns = ["timestamp", "scene", "slider1", "slider2", "slider3", "slider4"]
+    if existing_headers != columns:
+        ws.clear()
+        ws.append_row(columns)
+
+    # Datenzeile
+    row = [
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        scene,
+        *slider_values,
+    ]
+    ws.append_row(row)
 
 
 # ────────────────────────── Feedback ─────────────────────────────

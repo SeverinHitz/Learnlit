@@ -11,7 +11,7 @@ st.title("📊 Auswertung der LearnLit-Spiele")
 # ────────────────────────── Spiel-Definitionen ─────────────────────
 spiele = {
     "🕵️ Landschaftsdetektiv:in": "Landschaftsdetektiv",
-    "🎚️ Slider-Spiel": "SliderSpiel",  # Für später
+    "🎚️ Landschaftsdesigner:in": "Landschaftsdesigner",  # Für später
 }
 
 
