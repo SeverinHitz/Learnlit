@@ -31,7 +31,7 @@ Diese Plattform vereint interaktive Lernspiele und Visualisierungstools, die spi
 ## 📸 Screenshots
 
 
-[Landschaftsdetektiv](screenshots/landschaftsdetektiv.png)
+![Landschaftsdetektiv](screenshots/landschaftsdetektiv.png)
 
 ---
 
