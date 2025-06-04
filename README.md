@@ -1,91 +1,106 @@
-# 🧩 Finde den Unterschied – Klimawandel erkennen
+# 🌱 Landschaft erleben – Interaktive Wissenskommunikationstools (WKT)
 
-Ein interaktives Lernspiel für Kinder (3.–6. Klasse)
-Entdecke, wie sich unsere Landschaft durch den Klimawandel verändert – und lerne dabei auf spielerische Weise wichtige Zusammenhänge kennen.
-
----
-
-## 🎯 Ziel des Spiels
-
-Zwei nahezu identische Bilder – doch in einem haben sich durch den Klimawandel kleine Dinge verändert. Finde die Unterschiede!
-
-- 🔍 Klicke auf Bildbereiche mit Veränderungen
-- 🧠 Lerne durch kindgerechte Erklärtexte
-- ⏱️ Messe deine Reaktionszeit
-- 📊 Verfolge deinen Lernfortschritt
+Willkommen bei **Landschaft erleben**!  
+Diese Plattform vereint interaktive Lernspiele und Visualisierungstools, die spielerisch Wissen zu Klimawandel, Landschaftsentwicklung und Biodiversität vermitteln. Unsere Games richten sich an ein breites Publikum – von Schüler:innen über Studierende bis zu Fachleuten und allen Interessierten.
 
 ---
 
-## 🖼️ Beispielhafte Unterschiede
+## 🕹️ Features
 
-- 🌞 Solarpark auf dem Hügel
-- 🌬️ Windrad im Hintergrund
-- 🌳 Tote Bäume durch Borkenkäfer
-- 🌡️ Vertrocknete Wiese
-- 🏘️ Neubauten mit Gründach
-- u.v.m.
+- **Landschaftsdetektiv:in**  
+  ➡️ Finde die Unterschiede! Spieler:innen erkunden Bildpaare von Landschaften und lernen dabei, wie sich Umweltveränderungen sichtbar machen lassen.
+  
+- **Landschaftsdesigner:in**  
+  ➡️ Experimentiere mit Schiebereglern, um verschiedene Szenarien einer Landschaft zu simulieren und zu sehen, wie sich Parameter wie Vegetation oder Infrastruktur verändern.
+
+- **Auswertung**  
+  ➡️ Visualisiere die Ergebnisse aus den Spielen und erfahre, wie das Publikum interagiert hat. Hier kannst du deine Ergebnisse auswerten und Feedback einholen (nur mit Passwortschutz zugänglich).
 
 ---
 
-## 🚀 Demo starten
+## 🚀 Aufbau & Technik
 
-### 1. Installation
+- **Streamlit** als Frontend-Framework für eine intuitive, webbasierte Nutzeroberfläche.
+- **Pandas** und **Geopandas** für Datenanalyse und Geodatenverarbeitung.
+- **Pillow (PIL)** und **Matplotlib** für Bildverarbeitung und Visualisierung.
+- **Google Sheets** für die Speicherung und Auswertung von Spielergebnissen.
+- **Shapely** für die Geometrieberechnungen (z.B. Differenzpolygone).
 
-pip install -r requirements.txt
+---
 
-### 2. Projektstruktur
+## 📸 Screenshots
 
-📂 dein-projekt/
-├── app.py                      # Hauptanwendung
-├── utils.py                    # Hilfsfunktionen
-├── requirements.txt            # Abhängigkeiten
+
+[Landschaftsdetektiv](screenshots/landschaftsdetektiv.png)
+
+---
+
+## 🔐 Passwortschutz
+
+Bestimmte Bereiche (z.B. die Auswertung) sind passwortgeschützt, um sensible Ergebnisse zu schützen. Das Passwort ist in der `.streamlit/secrets.toml` hinterlegt.
+
+---
+
+## 🚀 Installation & Start
+
+1. Repository klonen:
+   ```bash
+   git clone https://github.com/dein-user/landschaft-erleben.git
+   cd landschaft-erleben
+````
+
+2. Virtuelle Umgebung aktivieren:
+
+   ```bash
+   conda activate PWLE  # oder dein venv
+   ```
+3. Abhängigkeiten installieren:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Streamlit starten:
+
+   ```bash
+   streamlit run Start.py
+   ```
+
+---
+
+## 🛠️ Projektstruktur
+
+```
+.
 ├── data/
-│   ├── Dorf_unverändert.png    # Ursprungsbild
-│   ├── Dorf_verändert.png      # Bild mit Klimawandel-Effekten
-│   ├── Dorf.xml                # Unterschiede als CVAT-Annotation
-│   └── Dorf_lerntexte.md       # Kindgerechte Erklärtexte
-
-### 3. Starten der App
-
-streamlit run app.py
-
----
-
-## 📦 Abhängigkeiten
-
-- streamlit – Web-App Framework
-- streamlit-image-coordinates – Klickpositionen aus Bildern auslesen
-- streamlit-js-eval – Fensterbreite automatisch erkennen
-- geopandas, shapely – Geo-Logik zur Trefferprüfung
-- pandas – Fortschritts-Tracking
-- matplotlib, Pillow – Bildanzeige & Overlays
-
-👉 Alle Pakete findest du in der requirements.txt
+│   └── ...
+├── pages/
+│   ├── Landschaftsdetektiv.py
+│   ├── Landschaftsdesigner.py
+│   └── Auswertung.py
+├── utils/
+│   ├── detective_utils.py
+│   └── ...
+├── tests/
+│   └── ...
+├── Start.py
+├── requirements.txt
+└── README.md
+```
 
 ---
 
-## 📚 Lernziele für Kinder
+## 📜 Lizenz
 
-Dieses Spiel wurde entwickelt für den Einsatz im Unterricht oder zu Hause:
-
-- 🌍 Verständnis für Auswirkungen des Klimawandels in der Umgebung
-- 🧠 Training von Beobachtungsgabe & Konzentration
-- 📖 Vermittlung von Wissen in einfacher Sprache
-- ⏱️ Motivation durch Zeit-Tracking und Fortschritt
+Dieses Projekt ist Open Source und steht unter der MIT-Lizenz.
 
 ---
 
-## 🧑‍💻 Mitmachen & Anpassen
+## 🤝 Kontakt
 
-- Eigene Szenen lassen sich durch neue Bilder + .xml + .md-Datei leicht hinzufügen.
-- Einfach neue Dateien unter data/ ablegen und Szene im Code anpassen (scene = "...").
-
----
-
-## 📝 Lizenz
-
-Dieses Projekt kann frei für Bildungszwecke genutzt und angepasst werden.
+Falls du Fragen hast oder Ideen einbringen möchtest, wende dich gerne an \[deine Kontaktperson oder Organisation einfügen].
 
 ---
 
-Viel Spaß beim Erkennen und Verstehen! 🌱
+*Diese Readme wurde zuletzt am \[Datum] aktualisiert.*
+
+

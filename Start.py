@@ -2,24 +2,18 @@
 
 import streamlit as st
 import os
+from pathlib import Path
 
-st.set_page_config(page_title="Streamlit App", layout="wide")
+st.set_page_config(page_title="Start", layout="wide")
 
-# Willkommenstext oder Dashboard hier
-st.title("Willkommen zur Streamlit App")
 
 # Info-Text oder Einführung
-st.markdown("""
-## 📚 Übersicht
-
-Diese Anwendung enthält verschiedene Seiten:
-
-- **Landschaftsdetektiv**  
-- **Landschaftsdesigner**  
-- **Auswertung**
-
-Bitte verwende die Sidebar links, um eine Seite auszuwählen.
-""")
+readme_path = Path(__file__).parent / "README.md"
+if readme_path.exists():
+    readme_content = readme_path.read_text(encoding="utf-8")
+    st.markdown(readme_content)
+else:
+    st.warning("README.md nicht gefunden.")
 
 # Optional: Pfad zu Pages überprüfen
 pages_dir = "pages"
