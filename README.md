@@ -45,7 +45,7 @@ Bestimmte Bereiche (z.B. die Auswertung) sind passwortgeschützt, um sensible Er
 
 1. Repository klonen:
    ```bash
-   git clone https://github.com/dein-user/landschaft-erleben.git
+   git clone https://github.com/SeverinHitz/Learnlit.git
    cd landschaft-erleben
 ````
 
