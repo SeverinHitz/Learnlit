@@ -47,7 +47,7 @@ Bestimmte Bereiche (z.B. die Auswertung) sind passwortgeschützt, um sensible Er
    ```bash
    git clone https://github.com/SeverinHitz/Learnlit.git
    cd landschaft-erleben
-````
+    ````
 
 2. Virtuelle Umgebung aktivieren:
 
