@@ -155,9 +155,6 @@ def handle_click(
     rel_x = click["x"] / image_w
     rel_y = click["y"] / (image_w * img.height / img.width)  # weil Höhe proportional
 
-    print(f"Click: {rel_x:.4f}, {rel_y:.4f} ({key_last})")
-    print(f"GDF Head: {gdf_diff_s.head()}")
-
     # ► Doppelklick‐Filter
     if (rel_x, rel_y) == st.session_state.get(key_last):
         return

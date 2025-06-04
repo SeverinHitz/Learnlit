@@ -1,4 +1,3 @@
 credentials.json
 .streamlit/secrets.toml
 */.streamlit/secrets.toml
-/data/slider/Test*.jpg
