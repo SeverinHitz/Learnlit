@@ -10,7 +10,7 @@ from datetime import datetime
 from shapely.geometry import Point
 from streamlit_image_coordinates import streamlit_image_coordinates
 from streamlit_js_eval import streamlit_js_eval
-from detective_utils import (
+from utils.detective_utils import (
     get_base_path,
     convert_display_to_original_coords,
     draw_markers_on_images,
@@ -18,11 +18,14 @@ from detective_utils import (
     plot_images_with_differences,
     get_scene_scaled,
 )
+from utils.utils import reset_session_state_on_page_change
 
 # ───────────────────────── UI-Setup ─────────────────────────
 st.set_page_config(layout="wide")
 st.title("🕵️ Landschaftsdetektiv:in")
 st.logo(get_base_path() / "icon.webp", size="large")
+
+reset_session_state_on_page_change("Auswertung")
 
 
 win_w = streamlit_js_eval(
@@ -113,7 +116,7 @@ if len(st.session_state.gefunden) == len(lerntexte):
     if st.session_state.feedback:
         st.success("🎉 Danke für deine Rückmeldung!")
     else:
-        from utils import zeige_feedback_formular
+        from utils.utils import zeige_feedback_formular
 
         zeige_feedback_formular("Landschaftsdetektiv")
 
@@ -208,7 +211,7 @@ if (
 
     # Speichern der Ergebnisse in Google Sheets
     try:
-        from google_utils import save_compare_results_to_gsheet
+        from utils.google_utils import save_compare_results_to_gsheet
 
         save_compare_results_to_gsheet(
             st.session_state.found_data,

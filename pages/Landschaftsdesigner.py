@@ -1,13 +1,14 @@
 import streamlit as st
-import pandas as pd
-from datetime import datetime
-from slider_utils import get_image_path, scan_slider_ranges, create_feedback_df
-from google_utils import save_feedback_to_gsheet
-from google_utils import save_slider_results_to_gsheet, save_feedback_to_gsheet
+from utils.slider_utils import get_image_path, scan_slider_ranges
+from utils.google_utils import save_slider_results_to_gsheet
+from utils.utils import reset_session_state_on_page_change
 
 
 st.set_page_config("Landschafts-Spiel", layout="wide")
 scene_ranges = scan_slider_ranges()
+
+reset_session_state_on_page_change("Auswertung")
+
 if "feedback" not in st.session_state:
     st.session_state["feedback"] = False
 
@@ -55,7 +56,7 @@ if st.button("✅ Diese Variante gefällt mir am besten"):
     st.rerun()
 
 if st.session_state.get("image_name") and not st.session_state["feedback"]:
-    from utils import zeige_feedback_formular
+    from utils.utils import zeige_feedback_formular
 
     zeige_feedback_formular("Landschaftsdesigner")
 elif st.session_state["feedback"]:

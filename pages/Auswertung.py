@@ -3,10 +3,23 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-from google_utils import lade_worksheet_namen, lade_worksheet
+from utils.google_utils import lade_worksheet_namen, lade_worksheet
+from utils.utils import reset_session_state_on_page_change
 
 st.set_page_config(layout="wide")
 st.title("📊 Auswertung der LearnLit-Spiele")
+
+reset_session_state_on_page_change("Auswertung")
+
+# ────────────────────────── Passwortschutz ────────────────────────
+password = st.text_input("🔑 Bitte Passwort eingeben:", type="password")
+correct_password = st.secrets.auswertung.get("password")
+
+if password != correct_password:
+    st.warning(
+        "🚫 Falsches Passwort oder kein Passwort eingegeben. Zugriff verweigert."
+    )
+    st.stop()
 
 # ────────────────────────── Spiel-Definitionen ─────────────────────
 spiele = {

@@ -22,10 +22,10 @@ PIXEL_BUFFER = 5.0  # Pixel-Puffer für Klick-Regionen
 
 # ────────────────────────── Pfad-Utilities ──────────────────────────
 def get_base_path() -> Path:
-    """Basis­pfad zum *data/*-Ordner – lokal oder Cloud."""
+    """Basis­pfad zum *data/detective*-Ordner."""
     if "HOME" in os.environ and "streamlit" in os.environ["HOME"]:
         return Path("data/detective")
-    return Path(__file__).parent / "data/detective"
+    return Path(__file__).parent.parent / "data" / "detective"
 
 
 # ────────────────────────── Bild-I/O ────────────────────────────────

@@ -34,7 +34,7 @@ def zeige_feedback_formular(sheet_name) -> None:
         feedback_df = pd.DataFrame(feedback_data)
 
         try:
-            from google_utils import save_feedback_to_gsheet
+            from utils.google_utils import save_feedback_to_gsheet
 
             save_feedback_to_gsheet(feedback_df, sheet_name)
             st.session_state.feedback = True
@@ -42,3 +42,28 @@ def zeige_feedback_formular(sheet_name) -> None:
             st.rerun()
         except Exception as e:
             st.warning(f"⚠️ Leider hat das Abspeichern nicht geklappt: {e}")
+
+
+def reset_session_state(exclude_keys: list[str] = []) -> None:
+    """
+    Löscht alle Keys im session_state außer denen, die explizit geschützt werden sollen.
+    """
+    keys_to_delete = [
+        key
+        for key in st.session_state.keys()
+        if key not in exclude_keys and key != "last_page"
+    ]
+    for key in keys_to_delete:
+        del st.session_state[key]
+
+
+def reset_session_state_on_page_change(
+    current_page_name: str, exclude_keys: list[str] = []
+) -> None:
+    """
+    Löscht session_state beim ersten Aufruf pro Seite (Page-Name).
+    """
+    last_page = st.session_state.get("last_page")
+    if last_page != current_page_name:
+        reset_session_state(exclude_keys)
+    st.session_state["last_page"] = current_page_name
