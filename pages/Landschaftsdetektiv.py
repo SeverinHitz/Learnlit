@@ -6,13 +6,11 @@ import time
 
 import pandas as pd
 import streamlit as st
-from datetime import datetime
 from shapely.geometry import Point
 from streamlit_image_coordinates import streamlit_image_coordinates
 from streamlit_js_eval import streamlit_js_eval
 from utils.detective_utils import (
     get_base_path,
-    convert_display_to_original_coords,
     draw_markers_on_images,
     load_lerntexte,
     plot_images_with_differences,
@@ -25,7 +23,7 @@ st.set_page_config(layout="wide")
 st.title("🕵️ Landschaftsdetektiv:in")
 st.logo(get_base_path() / "icon.webp", size="large")
 
-reset_session_state_on_page_change("Auswertung")
+reset_session_state_on_page_change("Landschaftsdetektiv")
 
 
 win_w = streamlit_js_eval(

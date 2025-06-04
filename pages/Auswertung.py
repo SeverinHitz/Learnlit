@@ -2,7 +2,6 @@
 
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 from utils.google_utils import lade_worksheet_namen, lade_worksheet
 from utils.utils import reset_session_state_on_page_change
 
