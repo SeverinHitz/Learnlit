@@ -47,8 +47,13 @@ def test_save_compare_results_to_gsheet(mock_credentials, mocker):
     mocker.patch("utils.google_utils.gspread.authorize", return_value=client_mock)
 
     save_compare_results_to_gsheet(
-        df, scene="Dorf", spielname="Testspiel", alter=12, all_pts=[(1, 2, True)]
+        df,
+        scene="Dorf",
+        spielname="Testspiel",
+        alter=12,
+        all_pts=[{"rel_x": 0.1, "rel_y": 0.2, "hit": True}],
     )
+
     ws_mock.append_row.assert_called()
 
 

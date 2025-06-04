@@ -144,25 +144,42 @@ with col2:
 
 
 # ───────────────────── Klick-Handler ────────────────────────
-def handle_click(click: dict | None, img, key_last: str, label_side: str) -> None:
+def handle_click(
+    click: dict | None,
+    img,
+    key_last: str,
+    label_side: str,
+) -> None | bool:
     if not click:
         return
-    x_disp, y_disp = click["x"], click["y"]
-    x_px, y_px = convert_display_to_original_coords(x_disp, y_disp, img, image_w)
-    if (x_px, y_px) == st.session_state[key_last]:
-        return  # kein neuer Klick
 
-    # Treffer-Prüfung
-    hit = not gdf_diff_s[gdf_diff_s.contains(Point(x_px, y_px))].empty
-    st.session_state.all_pts.append((x_px, y_px, hit))
-    st.session_state[key_last] = (x_px, y_px)
+    # ► Display-Koordinate → relative Koordinate (0-1)
+    rel_x = click["x"] / image_w
+    rel_y = click["y"] / (image_w * img.height / img.width)  # weil Höhe proportional
+
+    print(f"Click: {rel_x:.4f}, {rel_y:.4f} ({key_last})")
+    print(f"GDF Head: {gdf_diff_s.head()}")
+
+    # ► Doppelklick‐Filter
+    if (rel_x, rel_y) == st.session_state.get(key_last):
+        return
+
+    # ► Für Treffer-Prüfung einmal in Original-Pixel umrechnen
+    point = Point(rel_x, rel_y)
+    hit = not gdf_diff_s[gdf_diff_s.contains(point)].empty
+
+    # ► Klick speichern (nur rel_x/rel_y + hit)
+    st.session_state.all_pts.append({"rel_x": rel_x, "rel_y": rel_y, "hit": hit})
+    st.session_state[key_last] = (rel_x, rel_y)  # letztes Click-Memo
+
     if key_last == "last_click_original":
-        st.session_state.last_pt_orig = (x_px, y_px)
+        st.session_state.last_pt_orig = (rel_x, rel_y)
     else:
-        st.session_state.last_pt_klima = (x_px, y_px)
+        st.session_state.last_pt_klima = (rel_x, rel_y)
 
+    # ► Meldungen & Lerntexte
     if hit:
-        label = gdf_diff_s[gdf_diff_s.contains(Point(x_px, y_px))].iloc[0]["label"]
+        label = gdf_diff_s[gdf_diff_s.contains(point)].iloc[0]["label"]
         if label not in st.session_state.gefunden:
             st.session_state.gefunden.append(label)
             sec = round(time.time() - st.session_state.start_time, 2)
@@ -177,7 +194,8 @@ def handle_click(click: dict | None, img, key_last: str, label_side: str) -> Non
         st.session_state.letzte_meldung = (
             f"❌ Kein Unterschied im {label_side} gefunden."
         )
-    return True
+
+    return True  # signalisiert dem Aufrufer, dass ein Rerun nötig ist
 
 
 rerun1 = handle_click(click1, img_orig_s, "last_click_original", "Originalbild")

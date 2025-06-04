@@ -37,9 +37,9 @@ def save_compare_results_to_gsheet(
     sheet_name: str = "Landschaftsdetektiv",
     spielname: str | None = None,
     alter: int | None = None,
-    all_pts: list[tuple[float, float, bool]] | None = None,
+    all_pts: list[dict] | None = None,  # <- jetzt Dicts mit rel_x/rel_y/hit
 ):
-    """Speichert eine Spielrunde als EINE Zeile mit Labels als Spalten, plus Spielname, Alter, Punkte."""
+    """Speichert eine Spielrunde als EINE Zeile (Labels = Spalten) plus Metadaten."""
     sh = init_gsheet(sheet_name)
 
     try:
@@ -48,18 +48,16 @@ def save_compare_results_to_gsheet(
         existing_headers = list(existing_data[0].keys()) if existing_data else []
     except gspread.exceptions.WorksheetNotFound:
         ws = sh.add_worksheet(title=scene, rows="1000", cols="50")
-        existing_data = []
-        existing_headers = []
+        existing_data, existing_headers = [], []
 
-    # Alle Labels aus dem aktuellen Durchlauf
+    # ► Alle Labels und Zeiten aus der Runde
     label_to_time = dict(zip(df["label"], df["sekunden_seit_start"]))
-    round_labels = sorted(label_to_time.keys())
+    round_labels = sorted(label_to_time)
 
-    # Zielspalten
     fixed_columns = ["timestamp", "spielname", "alter"]
     all_columns = fixed_columns + round_labels + ["punkte"]
 
-    # Header aktualisieren, falls sich etwas verändert hat
+    # ► Header anpassen, falls neue Labels dazugekommen sind
     if existing_headers != all_columns:
         old_rows = (
             [[row.get(h, "") for h in all_columns] for row in existing_data]
@@ -71,19 +69,19 @@ def save_compare_results_to_gsheet(
         if old_rows:
             ws.append_rows(old_rows)
 
-    # Neue Zeile
+    # ► Datenzeile zusammenbauen
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     zeile = [timestamp, spielname or "", alter or ""]
 
-    # Zeitwerte passend einsortieren
-    zeile += [label_to_time.get(label, "") for label in round_labels]
+    # Label-Zeitspalten füllen
+    zeile += [label_to_time.get(lbl, "") for lbl in round_labels]
 
-    # Punkte serialisieren
-    pts_str = (
-        "; ".join([f"({int(x)}, {int(y)}, {hit})" for x, y, hit in all_pts])
-        if all_pts
-        else ""
-    )
+    # Klickliste serialisieren (rel_x/rel_y auf 4 Dezimalstellen)
+    pts_str = ""
+    if all_pts:
+        pts_str = "; ".join(
+            f"({p['rel_x']:.4f}, {p['rel_y']:.4f}, {p['hit']})" for p in all_pts
+        )
     zeile.append(pts_str)
 
     ws.append_row(zeile)
