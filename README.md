@@ -37,7 +37,7 @@ Diese Plattform vereint interaktive Lernspiele und Visualisierungstools, die spi
 
 ## 🔐 Passwortschutz
 
-Bestimmte Bereiche (z.B. die Auswertung) sind passwortgeschützt, um sensible Ergebnisse zu schützen. Das Passwort ist in der `.streamlit/secrets.toml` hinterlegt.
+Bestimmte Bereiche (z.B. die Auswertung) sind passwortgeschützt, um sensible Ergebnisse zu schützen.
 
 ---
 
@@ -93,14 +93,9 @@ Bestimmte Bereiche (z.B. die Auswertung) sind passwortgeschützt, um sensible Er
 
 Dieses Projekt ist Open Source und steht unter der MIT-Lizenz.
 
----
-
-## 🤝 Kontakt
-
-Falls du Fragen hast oder Ideen einbringen möchtest, wende dich gerne an \[deine Kontaktperson oder Organisation einfügen].
 
 ---
 
-*Diese Readme wurde zuletzt am \[Datum] aktualisiert.*
+*Diese Readme wurde zuletzt am \[05.06.2025] aktualisiert.*
 
 
