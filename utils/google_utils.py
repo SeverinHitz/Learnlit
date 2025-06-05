@@ -143,7 +143,7 @@ def save_feedback_to_gsheet(
 
 
 # ────────────────────────── Daten laden ───────────────────────────
-@st.cache_data
+@st.cache_data(ttl=600)
 def lade_worksheet_namen(sheet_name: str) -> list[str]:
     try:
         sheet = init_gsheet(sheet_name)
@@ -153,12 +153,51 @@ def lade_worksheet_namen(sheet_name: str) -> list[str]:
         return []
 
 
-@st.cache_data
+@st.cache_data(ttl=120)
 def lade_worksheet(sheet_name: str, worksheet_name: str) -> pd.DataFrame:
+    """
+    Lädt die Daten aus einem Google-Sheet-Worksheet als Pandas DataFrame.
+
+    Diese Funktion verwendet get_all_values(), um sicherzustellen, dass
+    alle Werte zunächst als Strings geladen werden (inkl. deutscher Kommas
+    als Dezimaltrenner). Danach werden die Spalten (außer timestamp,
+    spielname, punkte) konvertiert:
+
+    - Alle Kommas werden durch Punkte ersetzt.
+    - Danach werden die Werte in floats gewandelt.
+
+    Das ermöglicht einen robusten Import auch für unterschiedliche
+    Regional-Einstellungen in Google Sheets (z.B. Deutsch/Schweiz vs.
+    Englisch/USA).
+
+    Args:
+        sheet_name (str): Der Name des Google-Sheets-Dokuments.
+        worksheet_name (str): Der Name des Worksheets innerhalb des Dokuments.
+
+    Returns:
+        pd.DataFrame: Ein DataFrame mit den geladenen und konvertierten Daten.
+    """
     try:
         sheet = init_gsheet(sheet_name)
         ws = sheet.worksheet(worksheet_name)
-        return pd.DataFrame(ws.get_all_records())
+        data = ws.get_all_values()
+        headers = data[0]
+        rows = data[1:]
+        df = pd.DataFrame(rows, columns=headers)
+
+        print(df.head())  # Debug-Ausgabe
+
+        for col in df.columns:
+            if col.lower() in ["timestamp", "spielname", "punkte"]:
+                continue
+            try:
+                df[col] = (
+                    df[col].astype(str).str.replace(",", ".", regex=False).astype(float)
+                )
+            except Exception:
+                pass
+        return df
+
     except Exception as e:
         st.error(f"Fehler beim Laden der Daten aus '{worksheet_name}': {e}")
         return pd.DataFrame()

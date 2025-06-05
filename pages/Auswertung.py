@@ -4,6 +4,7 @@ import streamlit as st
 import pandas as pd
 from utils.google_utils import lade_worksheet_namen, lade_worksheet
 from utils.utils import reset_session_state_on_page_change
+from utils.auswertung_utils import detective_auswertung
 
 st.set_page_config(layout="wide")
 st.title("📊 Auswertung der LearnLit-Spiele")
@@ -11,25 +12,27 @@ st.title("📊 Auswertung der LearnLit-Spiele")
 reset_session_state_on_page_change("Auswertung")
 
 # ────────────────────────── Passwortschutz ────────────────────────
-password = st.text_input("🔑 Bitte Passwort eingeben:", type="password")
-correct_password = st.secrets.auswertung.get("password")
+if "auth_ok" not in st.session_state:
+    st.session_state["auth_ok"] = False
 
-if password != correct_password:
-    st.warning(
-        "🚫 Falsches Passwort oder kein Passwort eingegeben. Zugriff verweigert."
-    )
-    st.stop()
+if not st.session_state["auth_ok"]:
+    password = st.text_input("🔑 Bitte Passwort eingeben:", type="password")
+    correct_password = st.secrets.auswertung.get("password")
+
+    if password == correct_password:
+        st.session_state["auth_ok"] = True
+        st.rerun()  # Seite neu laden und das Passwortfeld ausblenden
+    elif password:  # nur wenn was eingetippt wurde
+        st.warning(
+            "🚫 Falsches Passwort oder kein Passwort eingegeben. Zugriff verweigert."
+        )
+    st.stop()  # wenn Passwort nicht korrekt → stop
 
 # ────────────────────────── Spiel-Definitionen ─────────────────────
 spiele = {
     "🕵️ Landschaftsdetektiv:in": "Landschaftsdetektiv",
-    "🎚️ Landschaftsdesigner:in": "Landschaftsdesigner",  # Für später
+    "🎚️ Landschaftsdesigner:in": "Landschaftsdesigner",
 }
-
-
-# ────────────────────────── Landschaftsdetektiv  ──────────────────
-def detective_auswertung(df: pd.DataFrame) -> None:
-    pass
 
 
 # ────────────────────────── Tabs pro Spiel ────────────────────────
@@ -52,6 +55,7 @@ for i, (spiel_label, sheet_name) in enumerate(spiele.items()):
             continue
 
         if spiel_label == "🕵️ Landschaftsdetektiv:in":
-            detective_auswertung(df)
+            detective_auswertung(df, worksheet_name)
 
-        st.dataframe(df, use_container_width=True)
+        elif spiel_label == "🎚️ Landschaftsdesigner:in":
+            pass
