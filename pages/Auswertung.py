@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 from utils.google_utils import lade_worksheet_namen, lade_worksheet
 from utils.utils import reset_session_state_on_page_change
-from utils.auswertung_utils import detective_auswertung
+from utils.auswertung_utils import detective_auswertung, feedback_auswertung
 
 st.set_page_config(layout="wide")
 st.title("📊 Auswertung der LearnLit-Spiele")
@@ -54,7 +54,9 @@ for i, (spiel_label, sheet_name) in enumerate(spiele.items()):
             st.info("Keine Daten verfügbar.")
             continue
 
-        if spiel_label == "🕵️ Landschaftsdetektiv:in":
+        if worksheet_name == "Feedback":
+            feedback_auswertung(df)
+        elif spiel_label == "🕵️ Landschaftsdetektiv:in":
             detective_auswertung(df, worksheet_name)
 
         elif spiel_label == "🎚️ Landschaftsdesigner:in":

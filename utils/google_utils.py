@@ -126,24 +126,32 @@ def save_feedback_to_gsheet(
     sheet_name: str = "Landschaftsdetektiv",
     worksheet: str = "Feedback",
 ):
-    """Speichert einzeiliges Feedback-DF in eigenes Worksheet."""
+    """
+    Speichert einzeiliges Feedback-DataFrame in ein eigenes Worksheet.
+    Fügt automatisch Spaltenheader hinzu, falls sie noch nicht existieren.
+    """
     sh = init_gsheet(sheet_name)
 
     try:
         ws = sh.worksheet(worksheet)
         existing = ws.get_all_values()
-        existing_rows = len(existing)
+        if not existing or df.columns.tolist() != existing[0]:
+            ws.clear()
+            ws.append_row(df.columns.tolist())
+            existing_rows = 1
+        else:
+            existing_rows = len(existing)
     except gspread.exceptions.WorksheetNotFound:
         ws = sh.add_worksheet(title=worksheet, rows="1000", cols="10")
         ws.append_row(df.columns.tolist())
         existing_rows = 1
 
-    # Nur Datenzeile(n) schreiben
+    # Feedback-Daten als Zeilen schreiben
     ws.insert_rows(df.values.tolist(), row=existing_rows + 1)
 
 
 # ────────────────────────── Daten laden ───────────────────────────
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=20)
 def lade_worksheet_namen(sheet_name: str) -> list[str]:
     try:
         sheet = init_gsheet(sheet_name)
@@ -153,7 +161,7 @@ def lade_worksheet_namen(sheet_name: str) -> list[str]:
         return []
 
 
-@st.cache_data(ttl=120)
+@st.cache_data(ttl=20)
 def lade_worksheet(sheet_name: str, worksheet_name: str) -> pd.DataFrame:
     """
     Lädt die Daten aus einem Google-Sheet-Worksheet als Pandas DataFrame.

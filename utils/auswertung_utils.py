@@ -8,36 +8,6 @@ from scipy.ndimage import gaussian_filter
 from utils.detective_utils import get_base_path
 
 
-############################# Auswertungs-Funktionen für Landschaftsdetektiv ############################
-def detective_auswertung(df: pd.DataFrame, scene: str):
-    """
-    Führt die Auswertung für das Spiel "Landschaftsdetektiv" durch.
-    Zeigt verschiedene Plots und Statistiken an.
-    """
-    st.subheader("🔍 Auswertung der Landschaftsdetektiv-Runde")
-
-    # Filter nach Zeitspanne (Datum + Uhrzeit)
-    filtered_df = zeitauswahl(df)
-
-    st.markdown("---")
-
-    # Leaderboard
-    plot_leaderboard(filtered_df)
-
-    # Violinplot der Zeiten
-    plot_violin_times(filtered_df)
-
-    # Heatmap der Klickpunkte
-    plot_heatmap(filtered_df, scene)
-
-    # Bild mit allen Punkten
-    plot_all_points(filtered_df, scene)
-
-    # Rohdaten anzeigen
-    show_raw_data(filtered_df)
-
-
-# ────────────────────────── 0. Zeitauswahl ────────────────────────
 def zeitauswahl(df: pd.DataFrame) -> pd.DataFrame:
     """
     Filtert das DataFrame anhand einer Zeitspanne (Datum + Uhrzeit).
@@ -72,6 +42,43 @@ def zeitauswahl(df: pd.DataFrame) -> pd.DataFrame:
     ]
 
     return filtered_df
+
+
+def show_raw_data(df: pd.DataFrame):
+    """
+    Zeigt das unbearbeitete DataFrame.
+    """
+    st.subheader("🗂️ Rohdaten")
+    st.dataframe(df, use_container_width=True)
+
+
+############################# Auswertungs-Funktionen für Landschaftsdetektiv ############################
+def detective_auswertung(df: pd.DataFrame, scene: str):
+    """
+    Führt die Auswertung für das Spiel "Landschaftsdetektiv" durch.
+    Zeigt verschiedene Plots und Statistiken an.
+    """
+    st.subheader("🔍 Auswertung der Landschaftsdetektiv-Runde")
+
+    # Filter nach Zeitspanne (Datum + Uhrzeit)
+    filtered_df = zeitauswahl(df)
+
+    st.markdown("---")
+
+    # Leaderboard
+    plot_leaderboard(filtered_df)
+
+    # Violinplot der Zeiten
+    plot_violin_times(filtered_df)
+
+    # Heatmap der Klickpunkte
+    plot_heatmap(filtered_df, scene)
+
+    # Bild mit allen Punkten
+    plot_all_points(filtered_df, scene)
+
+    # Rohdaten anzeigen
+    show_raw_data(filtered_df)
 
 
 # ────────────────────────── 1. Leaderboard ──────────────────────────
@@ -180,7 +187,7 @@ def plot_leaderboard(df: pd.DataFrame):
 def plot_violin_times(df: pd.DataFrame):
     """
     Plottet einen farbigen Violinplot der Zeiten pro Kategorie (Borke, Brand, etc.)
-    mit halbtransparenten Boxplots und farbigen Punkten.
+    mit halbtransparenten Boxplots und farbigen Punkten (unten liegend).
     """
     st.subheader("🎻 Violinplot der Zeiten pro Kategorie")
 
@@ -194,41 +201,29 @@ def plot_violin_times(df: pd.DataFrame):
     # Farbige Violinplots mit Seaborn-Palette
     palette = sns.color_palette("Set2", n_colors=len(times_long["Label"].unique()))
 
+    # Violinplots
     sns.violinplot(
         x="Label",
         y="Sekunden",
         data=times_long,
         ax=ax,
-        inner=None,  # Boxplot wird manuell gezeichnet
+        inner=None,
         palette=palette,
+        alpha=0.6,
     )
 
-    # Boxplots manuell als Overlay hinzufügen
+    # Boxplots als Overlay
     sns.boxplot(
         x="Label",
         y="Sekunden",
         data=times_long,
         ax=ax,
-        width=0.15,  # schmaler als die Violine
+        width=0.15,
         showcaps=True,
         boxprops={"facecolor": "white", "edgecolor": "black", "alpha": 0.5},
         whiskerprops={"color": "black"},
         capprops={"color": "black"},
         medianprops={"color": "black"},
-    )
-
-    # Stripplot: Farbige Punkte mit leichter Transparenz
-    sns.stripplot(
-        x="Label",
-        y="Sekunden",
-        data=times_long,
-        ax=ax,
-        hue="Label",
-        dodge=False,
-        color="black",
-        alpha=0.6,
-        jitter=True,
-        size=4,
     )
 
     ax.set_ylabel("Zeit (s)")
@@ -312,9 +307,125 @@ def plot_all_points(df: pd.DataFrame, scene: str):
 
 
 # ────────────────────────── 5. Raw DataFrame ──────────────────────────
-def show_raw_data(df: pd.DataFrame):
+
+
+############################# Auswertungs-Funktionen für Feedback ############################
+def feedback_auswertung(df: pd.DataFrame):
     """
-    Zeigt das unbearbeitete DataFrame.
+    Führt die Auswertung für das Feedback durch.
     """
-    st.subheader("🗂️ Rohdaten")
-    st.dataframe(df, use_container_width=True)
+    st.subheader(f"📣 Feedback-Auswertung")
+
+    # Filter nach Zeitspanne (Datum + Uhrzeit)
+    filtered_df = zeitauswahl(df)
+    st.markdown("---")
+
+    # Erhöhe Bewertung um 1 weil 0-4 verwendet wird
+    if "bewertung" in filtered_df.columns:
+        filtered_df["bewertung"] = filtered_df["bewertung"].apply(
+            lambda x: x + 1 if pd.notnull(x) else x
+        )
+
+    # 1. Metriken: Ø Bewertung und Gelernt-Anteil
+    plot_feedback_metrics(filtered_df)
+
+    # 2. Boxplot der Bewertungen
+    plot_feedback_boxplot(filtered_df)
+
+    # 3. Histogramm der "Gelernt"-Spalte
+    plot_feedback_gelernt_hist(filtered_df)
+
+    # 4. Kommentaranzeige
+    show_feedback_comments(filtered_df)
+
+    # Rohdaten anzeigen
+    show_raw_data(filtered_df)
+
+
+# ────────────────────────── 1. Feedback-Metriken ──────────────────────────
+def plot_feedback_metrics(df: pd.DataFrame):
+    """
+    Zeigt Metriken: Durchschnittsbewertung und Anteil derer, die etwas gelernt haben.
+    """
+    st.subheader("🔢 Kennzahlen")
+
+    avg_rating = df["bewertung"].mean().round(2) if not df.empty else -2
+    gelernt_pct = (
+        (df["gelernt"].sum() / len(df) * 100).round(1) if not df.empty else "-"
+    )
+
+    col1, col2 = st.columns(2)
+    col1.metric(label="Ø Bewertung", value=f"{avg_rating} von 5")
+    col2.metric(label="Anteil 'Gelernt'", value=f"{gelernt_pct} %")
+
+
+# ────────────────────────── 2. Boxplot der Bewertungen ──────────────────────────
+def plot_feedback_boxplot(df: pd.DataFrame):
+    """
+    Plottet einen Boxplot der Bewertungen.
+    """
+    st.subheader("🎯 Verteilung der Bewertungen")
+    if df.empty:
+        st.info("Keine Bewertungen im gewählten Zeitraum.")
+        return
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    sns.boxplot(x="bewertung", data=df, color="skyblue", width=0.5)
+    ax.set_xlim(0.5, 5.5)
+    ax.set_xlabel("Bewertung (1–5)")
+    ax.set_title("Boxplot der Bewertungen")
+    st.pyplot(fig)
+
+
+# ────────────────────────── 3. Histogramm der 'Gelernt'-Spalte ──────────────────────────
+def plot_feedback_gelernt_hist(df: pd.DataFrame):
+    """
+    Zeigt ein Histogramm, wie oft 'gelernt' angegeben wurde.
+    """
+    st.subheader("🧠 Anteil 'Gelernt'")
+
+    if df.empty:
+        st.info("Keine Feedbackdaten im gewählten Zeitraum.")
+        return
+
+    gelernt_counts = df["gelernt"].value_counts().sort_index()
+
+    labels = ["Nicht gelernt", "Gelernt"]
+    counts = [gelernt_counts.get(0, 0), gelernt_counts.get(1, 0)]
+
+    fig, ax = plt.subplots(figsize=(6, 4))
+    sns.barplot(x=labels, y=counts, palette="Set2", ax=ax)
+    ax.set_ylabel("Anzahl")
+    ax.set_title("Anteil 'Gelernt'")
+    st.pyplot(fig)
+
+
+# ────────────────────────── 4. Kommentare ──────────────────────────
+def show_feedback_comments(df: pd.DataFrame):
+    """
+    Zeigt alle Kommentare (absteigend sortiert nach Zeit).
+    """
+    st.subheader("📝 Kommentare")
+
+    if df.empty:
+        st.info("Keine Kommentare im gewählten Zeitraum.")
+        return
+
+    sorted_df = df.sort_values("timestamp_dt", ascending=False)
+    for _, row in sorted_df.iterrows():
+        kommentar = row.get("kommentar", "").strip()
+        if not kommentar:
+            continue  # Leere Kommentare überspringen
+
+        timestamp = row.get("timestamp", "")
+        rating = int(row.get("bewertung", 0))
+        gelernt = row.get("gelernt", 0)
+
+        # Bewertung als Sterne oder Zahl
+        rating_str = "⭐️" * rating if rating > 0 else "Keine Bewertung"
+        gelernt_str = "✅ Gelernt" if gelernt else "❌ Nicht gelernt"
+
+        st.markdown(
+            f"**{timestamp}**  |  {rating_str}  |  {gelernt_str}\n\n_{kommentar}_"
+        )
+        st.divider()
