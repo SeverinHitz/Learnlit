@@ -1,7 +1,7 @@
 import streamlit as st
 from utils.slider_utils import get_image_path, scan_slider_ranges
 from utils.google_utils import save_slider_results_to_gsheet
-from utils.utils import reset_session_state_on_page_change
+from utils.utils import reset_session_state_on_page_change, get_base_path
 
 
 st.set_page_config("Landschafts-Spiel", layout="wide")
@@ -13,6 +13,7 @@ if "feedback" not in st.session_state:
     st.session_state["feedback"] = False
 
 st.title("🌿 Gestalte deine Zukunftslandschaft")
+st.logo(get_base_path("slider") / "icon.png", size="large")
 
 slider_labels = {
     "S1": "🌳 Revitalisierungsgrad",

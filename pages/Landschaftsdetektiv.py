@@ -21,7 +21,7 @@ from utils.utils import reset_session_state_on_page_change
 # ───────────────────────── UI-Setup ─────────────────────────
 st.set_page_config(layout="wide")
 st.title("🕵️ Landschaftsdetektiv:in")
-st.logo(get_base_path() / "icon.webp", size="large")
+st.logo(get_base_path("detective") / "icon.webp", size="large")
 
 reset_session_state_on_page_change("Landschaftsdetektiv")
 
@@ -83,9 +83,9 @@ with st.sidebar:
         st.markdown(f"✅ **Gefunden:** {len(st.session_state['gefunden'])}")
 
     # Debug-Mode
-    st.session_state.debug_mode = st.checkbox(
-        "🛠️ Debug-Mode", value=st.session_state.debug_mode
-    )
+    # st.session_state.debug_mode = st.checkbox(
+    #     "🛠️ Debug-Mode", value=st.session_state.debug_mode
+    # )
 
 # ───────────────────── Spiel-Start ─────────────────────────
 if not st.session_state.spiel_started:

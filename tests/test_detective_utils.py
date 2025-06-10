@@ -1,6 +1,5 @@
 import pytest
 from utils.detective_utils import (
-    get_base_path,
     load_images,
     parse_cvat_xml,
     load_lerntexte,
@@ -8,6 +7,7 @@ from utils.detective_utils import (
     draw_markers_on_images,
     get_scene_scaled,
 )
+from utils.utils import get_base_path
 from pathlib import Path
 from PIL import Image
 import geopandas as gpd
@@ -27,7 +27,7 @@ def pytest_generate_tests(metafunc):
 
 @pytest.fixture
 def base_path():
-    return get_base_path()
+    return get_base_path("detective")
 
 
 def test_get_base_path(base_path):

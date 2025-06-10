@@ -1,6 +1,16 @@
 import streamlit as st
 from datetime import datetime
 import pandas as pd
+from pathlib import Path
+import os
+
+
+# ────────────────────────── Pfad-Utilities ──────────────────────────
+def get_base_path(game: str) -> Path:
+    """Basis­pfad zum *data/detective*-Ordner."""
+    if "HOME" in os.environ and "streamlit" in os.environ["HOME"]:
+        return Path("data/detective")
+    return Path(__file__).parent.parent / "data" / game
 
 
 def zeige_feedback_formular(sheet_name) -> None:

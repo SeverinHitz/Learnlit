@@ -17,22 +17,15 @@ from shapely.geometry.base import BaseGeometry
 import streamlit as st
 from shapely.affinity import scale as shp_scale
 from shapely.ops import transform
+from utils.utils import get_base_path
 
 PIXEL_BUFFER = 5.0  # Pixel-Puffer für Klick-Regionen
-
-
-# ────────────────────────── Pfad-Utilities ──────────────────────────
-def get_base_path() -> Path:
-    """Basis­pfad zum *data/detective*-Ordner."""
-    if "HOME" in os.environ and "streamlit" in os.environ["HOME"]:
-        return Path("data/detective")
-    return Path(__file__).parent.parent / "data" / "detective"
 
 
 # ────────────────────────── Bild-I/O ────────────────────────────────
 @st.cache_resource
 def load_images(scene: str) -> tuple[Image.Image, Image.Image]:
-    bp = get_base_path()
+    bp = get_base_path("detective")
     return (
         Image.open(bp / f"{scene}_unverändert.png"),
         Image.open(bp / f"{scene}_verändert.png"),
@@ -120,7 +113,7 @@ def parse_cvat_xml(scene: str) -> gpd.GeoDataFrame:
     """
     Gibt GeoDataFrame in RELATIVEN Koordinaten (0-1) zurück.
     """
-    xml_path = get_base_path() / f"{scene}.xml"
+    xml_path = get_base_path("detective") / f"{scene}.xml"
     root = ET.parse(xml_path).getroot()
 
     geoms, labels = [], []
@@ -149,7 +142,7 @@ def parse_cvat_xml(scene: str) -> gpd.GeoDataFrame:
 @st.cache_resource
 def load_lerntexte(scene: str) -> dict[str, str]:
     f = (
-        (get_base_path() / f"{scene}_lerntexte.md")
+        (get_base_path("detective") / f"{scene}_lerntexte.md")
         .read_text(encoding="utf-8")
         .splitlines()
     )

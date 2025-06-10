@@ -5,7 +5,7 @@ import seaborn as sns
 from PIL import Image, ImageDraw
 import numpy as np
 from scipy.ndimage import gaussian_filter
-from utils.detective_utils import get_base_path
+from utils.utils import get_base_path
 
 
 def zeitauswahl(df: pd.DataFrame) -> pd.DataFrame:
@@ -242,7 +242,7 @@ def plot_heatmap(df: pd.DataFrame, scene: str):
     """
     st.subheader("🌡️ Heatmap der Klickpunkte")
 
-    img_path = get_base_path() / f"{scene}_verändert.png"
+    img_path = get_base_path("detective") / f"{scene}_verändert.png"
     img = Image.open(img_path).convert("RGB")
     width, height = img.size
 
@@ -286,7 +286,7 @@ def plot_all_points(df: pd.DataFrame, scene: str):
     """
     st.subheader("📍 Alle gewählten Punkte")
 
-    img_path = get_base_path() / f"{scene}_verändert.png"
+    img_path = get_base_path("detective") / f"{scene}_verändert.png"
     img = Image.open(img_path).convert("RGBA")
     draw = ImageDraw.Draw(img, "RGBA")
 
