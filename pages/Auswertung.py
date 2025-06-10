@@ -2,7 +2,7 @@
 
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from utils.google_utils import lade_worksheet_namen, lade_worksheet
 from utils.utils import reset_session_state_on_page_change
 from utils.auswertung_utils import (
@@ -41,8 +41,13 @@ spiele = {
 }
 
 # ────────────────────────── Zeitauswahl ────────────────────────
-datetime_now = datetime.now()
-start_datetime, end_datetime = zeitauswahl(datetime_now=datetime_now)
+if "start_datetime" not in st.session_state and "end_datetime" not in st.session_state:
+    datetime_now = datetime.now()
+    default_start = datetime_now - timedelta(days=1)
+    default_end = datetime_now
+    st.session_state["start_datetime"] = default_start
+    st.session_state["end_datetime"] = default_end
+zeitauswahl()
 
 # ────────────────────────── Tabs pro Spiel ────────────────────────
 spiel_tabs = st.tabs(list(spiele.keys()))
@@ -64,9 +69,9 @@ for i, (spiel_label, sheet_name) in enumerate(spiele.items()):
             continue
 
         if worksheet_name == "Feedback":
-            feedback_auswertung(df, start_datetime, end_datetime)
+            feedback_auswertung(df)
         elif spiel_label == "🕵️ Landschaftsdetektiv:in":
-            detective_auswertung(df, worksheet_name, start_datetime, end_datetime)
+            detective_auswertung(df, worksheet_name)
 
         elif spiel_label == "🎚️ Landschaftsdesigner:in":
             pass
