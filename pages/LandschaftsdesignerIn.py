@@ -7,7 +7,7 @@ from utils.utils import reset_session_state_on_page_change, get_base_path
 st.set_page_config("Landschafts-Spiel", layout="wide")
 scene_ranges = scan_slider_ranges()
 
-reset_session_state_on_page_change("Landscaftsdesigner")
+reset_session_state_on_page_change("Landschaftsdesigner")
 
 if "feedback" not in st.session_state:
     st.session_state["feedback"] = False

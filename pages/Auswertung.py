@@ -32,6 +32,7 @@ if not st.session_state["auth_ok"]:
 spiele = {
     "🕵️ Landschaftsdetektiv:in": "Landschaftsdetektiv",
     "🎚️ Landschaftsdesigner:in": "Landschaftsdesigner",
+    "🌿 Landschaftsbeschützer:in": "Landschaftsbeschuetzer",
 }
 
 
