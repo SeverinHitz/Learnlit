@@ -34,6 +34,6 @@ if st.session_state["spiel_geoeffnet"]:
     if not st.session_state["feedback"]:
         from utils.utils import zeige_feedback_formular
 
-        zeige_feedback_formular("Landschaftsdesigner")
+        zeige_feedback_formular("Landschaftsbeschuetzer")
     elif st.session_state["feedback"]:
         st.success("🎉 Danke für deine Rückmeldung!")
