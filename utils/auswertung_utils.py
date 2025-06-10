@@ -105,7 +105,7 @@ def plot_leaderboard(df: pd.DataFrame):
 
     # Falls weniger als 3 Einträge: Dummy-Einträge hinzufügen
     while len(leaderboard) < 3:
-        leaderboard.loc[len(leaderboard)] = ["-", "-", np.nan]
+        leaderboard.loc[len(leaderboard)] = ["-", "-", "-"]
 
     # Top-3 als Metrics
     best_time = leaderboard.loc[0, "Gesamtzeit"]
