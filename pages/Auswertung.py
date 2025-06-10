@@ -2,9 +2,14 @@
 
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 from utils.google_utils import lade_worksheet_namen, lade_worksheet
 from utils.utils import reset_session_state_on_page_change
-from utils.auswertung_utils import detective_auswertung, feedback_auswertung
+from utils.auswertung_utils import (
+    detective_auswertung,
+    feedback_auswertung,
+    zeitauswahl,
+)
 
 st.set_page_config(layout="wide")
 st.title("📊 Auswertung der LearnLit-Spiele")
@@ -35,6 +40,9 @@ spiele = {
     "🌿 Landschaftsbeschützer:in": "Landschaftsbeschuetzer",
 }
 
+# ────────────────────────── Zeitauswahl ────────────────────────
+datetime_now = datetime.now()
+start_datetime, end_datetime = zeitauswahl(datetime_now=datetime_now)
 
 # ────────────────────────── Tabs pro Spiel ────────────────────────
 spiel_tabs = st.tabs(list(spiele.keys()))
@@ -56,9 +64,9 @@ for i, (spiel_label, sheet_name) in enumerate(spiele.items()):
             continue
 
         if worksheet_name == "Feedback":
-            feedback_auswertung(df)
+            feedback_auswertung(df, start_datetime, end_datetime)
         elif spiel_label == "🕵️ Landschaftsdetektiv:in":
-            detective_auswertung(df, worksheet_name)
+            detective_auswertung(df, worksheet_name, start_datetime, end_datetime)
 
         elif spiel_label == "🎚️ Landschaftsdesigner:in":
             pass

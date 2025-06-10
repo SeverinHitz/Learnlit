@@ -3,37 +3,48 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from PIL import Image, ImageDraw
+from datetime import timedelta
 import numpy as np
 from scipy.ndimage import gaussian_filter
 from utils.utils import get_base_path
 
 
-def zeitauswahl(df: pd.DataFrame) -> pd.DataFrame:
+def zeitauswahl(datetime_now: pd.Timestamp) -> tuple[pd.Timestamp, pd.Timestamp]:
     """
-    Filtert das DataFrame anhand einer Zeitspanne (Datum + Uhrzeit).
-    Gibt ein gefiltertes DataFrame zurück.
+    Stellt eine Zeitauswahl bereit mit Default-Werten, die sich
+    an einem übergebenen Timestamp orientieren (datetime_now - 1 Tag bis datetime_now).
+    Gibt einen Start- und Endzeitpunkt zurück.
     """
+
+    # Standardwerte setzen (datetime_now - 1 Tag bis datetime_now)
+    default_start = datetime_now - timedelta(days=1)
+    default_end = datetime_now
+
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         start_date = st.date_input(
-            "Von Datum", value=pd.to_datetime(df["timestamp"]).min()
+            "Von Datum", value=default_start.date(), key="start_date"
         )
     with col2:
         start_time = st.time_input(
-            "Von Uhrzeit", value=pd.to_datetime(df["timestamp"]).min().time()
+            "Von Uhrzeit", value=default_start.time(), key="start_time"
         )
     with col3:
-        end_date = st.date_input(
-            "Bis Datum", value=pd.to_datetime(df["timestamp"]).max()
-        )
+        end_date = st.date_input("Bis Datum", value=default_end.date(), key="end_date")
     with col4:
         end_time = st.time_input(
-            "Bis Uhrzeit", value=pd.to_datetime(df["timestamp"]).max().time()
+            "Bis Uhrzeit", value=default_end.time(), key="end_time"
         )
 
     start_datetime = pd.to_datetime(f"{start_date} {start_time}")
     end_datetime = pd.to_datetime(f"{end_date} {end_time}")
 
+    return start_datetime, end_datetime
+
+
+def filter_dataframe_by_time(
+    df: pd.DataFrame, start_datetime: pd.Timestamp, end_datetime: pd.Timestamp
+) -> pd.DataFrame:
     df_copy = df.copy()
     df_copy["timestamp_dt"] = pd.to_datetime(df_copy["timestamp"])
     filtered_df = df_copy[
@@ -53,7 +64,12 @@ def show_raw_data(df: pd.DataFrame):
 
 
 ############################# Auswertungs-Funktionen für Landschaftsdetektiv ############################
-def detective_auswertung(df: pd.DataFrame, scene: str):
+def detective_auswertung(
+    df: pd.DataFrame,
+    scene: str,
+    start_datetime: pd.Timestamp,
+    end_datetime: pd.Timestamp,
+):
     """
     Führt die Auswertung für das Spiel "Landschaftsdetektiv" durch.
     Zeigt verschiedene Plots und Statistiken an.
@@ -61,7 +77,7 @@ def detective_auswertung(df: pd.DataFrame, scene: str):
     st.subheader("🔍 Auswertung der Landschaftsdetektiv-Runde")
 
     # Filter nach Zeitspanne (Datum + Uhrzeit)
-    filtered_df = zeitauswahl(df)
+    filtered_df = filter_dataframe_by_time(df, start_datetime, end_datetime)
 
     st.markdown("---")
 
@@ -310,14 +326,18 @@ def plot_all_points(df: pd.DataFrame, scene: str):
 
 
 ############################# Auswertungs-Funktionen für Feedback ############################
-def feedback_auswertung(df: pd.DataFrame):
+def feedback_auswertung(
+    df: pd.DataFrame,
+    start_datetime: pd.Timestamp,
+    end_datetime: pd.Timestamp,
+):
     """
     Führt die Auswertung für das Feedback durch.
     """
     st.subheader(f"📣 Feedback-Auswertung")
 
     # Filter nach Zeitspanne (Datum + Uhrzeit)
-    filtered_df = zeitauswahl(df)
+    filtered_df = filter_dataframe_by_time(df, start_datetime, end_datetime)
     st.markdown("---")
 
     # Erhöhe Bewertung um 1 weil 0-4 verwendet wird
