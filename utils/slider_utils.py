@@ -9,8 +9,14 @@ from datetime import datetime
 def get_image_path(
     scene: str, s1: int, s2: int, s3: int, s4: int, image_dir: str = "data/slider"
 ) -> str:
-    filename = f"{scene}_{s1}_{s2}_{s3}_{s4}.jpg"
-    return str(Path(image_dir) / filename)
+    base = f"{scene}_{s1}_{s2}_{s3}_{s4}"
+    for ext in [".jpg", ".png"]:
+        path = Path(image_dir) / f"{base}{ext}"
+        if path.exists():
+            return str(path)
+    raise FileNotFoundError(
+        f"Kein Bild gefunden für Szene {base} (.jpg oder .png) im Verzeichnis {image_dir}"
+    )
 
 
 def scan_slider_ranges(
@@ -21,14 +27,14 @@ def scan_slider_ranges(
     Slider, die in einer Szene nie ≠ 0 sind, gelten als "nicht verwendet".
     """
     pattern = re.compile(
-        r"^(?P<scene>.+?)_(?P<s1>\d+)_(?P<s2>\d+)_(?P<s3>\d+)_(?P<s4>\d+)\.jpg$"
+        r"^(?P<scene>.+?)_(?P<s1>\d+)_(?P<s2>\d+)_(?P<s3>\d+)_(?P<s4>\d+)\.(jpg|png)$"
     )
     image_dir = Path(image_dir)
     values_by_scene = defaultdict(
         lambda: {"S1": set(), "S2": set(), "S3": set(), "S4": set()}
     )
 
-    for file in image_dir.glob("*.jpg"):
+    for file in list(image_dir.glob("*.jpg")) + list(image_dir.glob("*.png")):
         match = pattern.match(file.name)
         if not match:
             continue

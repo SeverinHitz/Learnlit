@@ -65,7 +65,7 @@ with st.sidebar:
     st.header("⚙️ Einstellungen")
 
     # Szenen-Auswahl
-    scene = st.selectbox("📸 Szene auswählen", ["Dorf", "Wald", "Stadt"], index=0)
+    scene = st.selectbox("📸 Szene auswählen", ["Dorf", "See", "Stadt"], index=0)
 
     # Bildbreite anpassen
     image_w = st.slider(

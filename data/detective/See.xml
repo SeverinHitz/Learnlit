@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<annotations>
+  <version>1.1</version>
+  <meta>
+    <task>
+      <id>1447155</id>
+      <name>Ebnat_kappeln See</name>
+      <size>2</size>
+      <mode>annotation</mode>
+      <overlap>0</overlap>
+      <bugtracker></bugtracker>
+      <created>2025-06-14 07:59:16.821000+00:00</created>
+      <updated>2025-06-14 08:03:06.677410+00:00</updated>
+      <subset>default</subset>
+      <start_frame>0</start_frame>
+      <stop_frame>1</stop_frame>
+      <frame_filter></frame_filter>
+      <segments>
+        <segment>
+          <id>2571671</id>
+          <start>0</start>
+          <stop>1</stop>
+          <url>https://app.cvat.ai/api/jobs/2569474</url>
+        </segment>
+      </segments>
+      <owner>
+        <username>SeverinHitz</username>
+        <email>sevihitz@bluewin.ch</email>
+      </owner>
+      <assignee></assignee>
+      <labels>
+        <label>
+          <name>Solar</name>
+          <color>#4422fd</color>
+          <type>polygon</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Wind</name>
+          <color>#ef6a84</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Borke</name>
+          <color>#cc9933</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Verbau</name>
+          <color>#adadad</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Hitze</name>
+          <color>#44e84c</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Neubau</name>
+          <color>#23ff52</color>
+          <type>polygon</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Rückhalt</name>
+          <color>#007fff</color>
+          <type>polygon</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Brand</name>
+          <color>#fa3253</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Erdrutsch</name>
+          <color>#72a900</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+      </labels>
+    </task>
+    <dumped>2025-06-14 08:03:35.723020+00:00</dumped>
+  </meta>
+  <image id="0" name="See_unverändert.png" width="1536" height="1024">
+  </image>
+  <image id="1" name="See_verändert.png" width="1536" height="1024">
+    <polygon label="Wind" source="manual" occluded="0" points="588.94,303.38;477.44,177.46;283.31,52.85;207.23,170.90;41.96,193.20;59.01,248.29;186.25,254.85;177.06,492.27;259.70,518.50;284.62,374.21;377.75,368.97;400.05,476.53;582.38,515.88;582.38,514.57" z_order="0">
+    </polygon>
+    <polygon label="Solar" source="manual" occluded="0" points="44.58,505.38;111.48,662.79;254.46,668.03;232.16,601.14;262.33,564.41;258.39,527.68;174.44,502.76" z_order="0">
+    </polygon>
+    <polygon label="Erdrutsch" source="manual" occluded="0" points="1530.74,275.84;1232.98,589.33;972.00,707.40;688.60,766.40;714.86,839.87;889.32,951.36;1033.80,986.00;1130.80,1004.30;1412.70,986.80;1530.74,953.98" z_order="0">
+    </polygon>
+  </image>
+</annotations>
