@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<annotations>
+  <version>1.1</version>
+  <meta>
+    <job>
+      <id>2577228</id>
+      <size>2</size>
+      <mode>annotation</mode>
+      <overlap>0</overlap>
+      <bugtracker></bugtracker>
+      <created>2025-06-17 09:38:03.277220+00:00</created>
+      <updated>2025-06-17 09:41:43.009442+00:00</updated>
+      <subset>default</subset>
+      <start_frame>0</start_frame>
+      <stop_frame>1</stop_frame>
+      <frame_filter></frame_filter>
+      <segments>
+        <segment>
+          <id>2579426</id>
+          <start>0</start>
+          <stop>1</stop>
+          <url>https://app.cvat.ai/api/jobs/2577228</url>
+        </segment>
+      </segments>
+      <owner>
+        <username>SeverinHitz</username>
+        <email>sevihitz@bluewin.ch</email>
+      </owner>
+      <assignee></assignee>
+      <labels>
+        <label>
+          <name>Solar</name>
+          <color>#4422fd</color>
+          <type>polygon</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Wind</name>
+          <color>#ef6a84</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Borke</name>
+          <color>#cc9933</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Verbau</name>
+          <color>#adadad</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Hitze</name>
+          <color>#44e84c</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Neubau</name>
+          <color>#23ff52</color>
+          <type>polygon</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Rückhalt</name>
+          <color>#007fff</color>
+          <type>polygon</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Brand</name>
+          <color>#fa3253</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Erdrutsch</name>
+          <color>#72a900</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>Renaturierung</name>
+          <color>#c6d5f3</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+      </labels>
+    </job>
+    <dumped>2025-06-17 09:42:01.943222+00:00</dumped>
+  </meta>
+  <image id="0" name="Tal_unverändert.png" width="1358" height="704">
+  </image>
+  <image id="1" name="Tal_verändert.png" width="1358" height="704">
+    <polygon label="Solar" source="manual" occluded="0" points="851.36,641.25;604.87,586.67;450.24,505.72;408.40,443.87;412.03,391.11;489.35,392.93;494.81,365.65;547.56,368.37;594.86,460.24;691.27,515.73;770.41,529.37;862.28,567.57" z_order="0">
+    </polygon>
+    <polygon label="Erdrutsch" source="manual" occluded="0" points="957.78,198.28;940.50,220.11;964.15,238.31;1025.09,226.48;1061.47,179.18;1063.29,153.71;1026.91,162.81" z_order="0">
+    </polygon>
+    <polygon label="Wind" source="manual" occluded="0" points="348.36,367.46;393.84,300.16;389.30,249.22;339.27,251.04;307.43,283.78;308.34,365.65" z_order="0">
+    </polygon>
+    <polygon label="Renaturierung" source="manual" occluded="0" points="130.97,551.20;199.19,405.67;268.32,313.80;301.07,294.70;386.57,251.04;372.01,231.03;315.62,231.03;233.76,249.22;128.25,289.24;27.28,360.19;3.63,397.48;4.54,535.74;4.54,535.74" z_order="0">
+    </polygon>
+  </image>
+</annotations>

@@ -32,7 +32,7 @@ elif st.session_state["feedback"]:
 
 slider_labels = {
     "S1": "🌳 Renaturierungslevel",
-    "S4": "🌱 Wasserabflusslevel",
+    "S4": "🌊 Hochwasser",
 }
 
 with st.sidebar:
@@ -40,11 +40,11 @@ with st.sidebar:
     slider_config = scene_ranges[scene]
     slider_values = []
     normalized_values = []
-    st.header("🔧 Auswahl")
 
     for key in ["S1", "S4"]:
         min_val, max_val = slider_config[key]
         label = slider_labels.get(key, key)
+
         if min_val == max_val == 0:
             st.caption(f"🔒 {label} ist in diesem Szenario nicht veränderbar.")
             slider_values.append(0)
@@ -54,10 +54,27 @@ with st.sidebar:
             slider_values.append(min_val)
             normalized_values.append(0.0)
         else:
-            val = st.slider(label, min_val, max_val, min_val)
+            if key == "S4":
+                toggle_label = f"{label} aktivieren"
+                st.markdown(f"#### {label}")
+                enabled = st.toggle(
+                    toggle_label,
+                    value=False,
+                    label_visibility="collapsed",
+                    help="Aktiviere, um Hochwasser zu simulieren.",
+                )
+                val = max_val if enabled else min_val
+                norm = 1.0 if enabled else 0.0
+            else:
+                st.markdown(f"#### {label}")
+                val = st.slider(
+                    label, min_val, max_val, min_val, label_visibility="collapsed"
+                )
+                norm = (val - min_val) / (max_val - min_val)
+
             slider_values.append(val)
-            norm = (val - min_val) / (max_val - min_val)  # → 0–1
             normalized_values.append(norm)
+
 
 # Bildpfad ermitteln
 image_path, kosten = get_image_path(scene.replace(" ", ""), *slider_values)

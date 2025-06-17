@@ -65,7 +65,7 @@ with st.sidebar:
     st.header("⚙️ Einstellungen")
 
     # Szenen-Auswahl
-    scene = st.selectbox("📸 Szene auswählen", ["Dorf", "See"], index=0)
+    scene = st.selectbox("📸 Szene auswählen", ["Tal", "Dorf", "See"], index=0)
 
     # Szene-Wechsel erkennen und Session-State zurücksetzen
     if "last_scene" not in st.session_state:
@@ -90,9 +90,9 @@ with st.sidebar:
         st.markdown(f"⏱️ **Spielzeit:** {elapsed} Sekunden")
         st.markdown(f"✅ **Gefunden:** {len(st.session_state['gefunden'])}")
 
-    # Debug-Mode
+    # Debug - Mode
     # st.session_state.debug_mode = st.checkbox(
-    #     "🛠️ Debug-Mode", value=st.session_state.debug_mode
+    #    "🛠️ Debug-Mode", value=st.session_state.debug_mode
     # )
 
 # ───────────────────── Spiel-Start ─────────────────────────

@@ -11,32 +11,46 @@ from utils.utils import get_base_path
 from utils.time_utils import fmt_local, to_utc, TZ_LOCAL
 
 
-def zeitauswahl():
+def zeitauswahl() -> None:
+    """
+    Zeitauswahl mit Formular. Speichert erst bei Klick auf 'Übernehmen'-Button.
+    """
+
     start_datetime = st.session_state.get("start_datetime")
     end_datetime = st.session_state.get("end_datetime")
 
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        start_date = st.date_input(
-            "Von Datum", value=start_datetime.date(), key="start_date"
-        )
-    with col2:
-        start_time = st.time_input(
-            "Von Uhrzeit", value=start_datetime.time(), key="start_time"
-        )
-    with col3:
-        end_date = st.date_input("Bis Datum", value=end_datetime.date(), key="end_date")
-    with col4:
-        end_time = st.time_input(
-            "Bis Uhrzeit", value=end_datetime.time(), key="end_time"
-        )
+    with st.form("zeitfilter_form", border=True):
+        st.markdown("### 🕒 Zeitraum auswählen")
 
-    # Lokale Eingaben → lokalisieren und in UTC speichern
-    start_local = TZ_LOCAL.localize(datetime.combine(start_date, start_time))
-    end_local = TZ_LOCAL.localize(datetime.combine(end_date, end_time))
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            start_date = st.date_input(
+                "Von Datum", value=start_datetime.date(), key="form_start_date"
+            )
+        with col2:
+            start_time = st.time_input(
+                "Von Uhrzeit", value=start_datetime.time(), key="form_start_time"
+            )
+        with col3:
+            end_date = st.date_input(
+                "Bis Datum", value=end_datetime.date(), key="form_end_date"
+            )
+        with col4:
+            end_time = st.time_input(
+                "Bis Uhrzeit", value=end_datetime.time(), key="form_end_time"
+            )
 
-    st.session_state["start_datetime"] = to_utc(start_local)
-    st.session_state["end_datetime"] = to_utc(end_local)
+        submitted = st.form_submit_button("⏳ Zeitraum übernehmen")
+
+    if submitted:
+        # Lokale Eingaben → lokalisieren und in UTC speichern
+        start_local = TZ_LOCAL.localize(datetime.combine(start_date, start_time))
+        end_local = TZ_LOCAL.localize(datetime.combine(end_date, end_time))
+
+        st.session_state["start_datetime"] = to_utc(start_local)
+        st.session_state["end_datetime"] = to_utc(end_local)
+
+        st.success("Zeitraum übernommen ✅")
 
 
 def filter_dataframe_by_time(df: pd.DataFrame) -> pd.DataFrame:
