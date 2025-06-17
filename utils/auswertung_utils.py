@@ -3,10 +3,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from PIL import Image, ImageDraw
-from datetime import timedelta
+from datetime import datetime
+import pytz
 import numpy as np
 from scipy.ndimage import gaussian_filter
 from utils.utils import get_base_path
+from utils.time_utils import fmt_local, to_utc, TZ_LOCAL
 
 
 def zeitauswahl():
@@ -29,13 +31,21 @@ def zeitauswahl():
             "Bis Uhrzeit", value=end_datetime.time(), key="end_time"
         )
 
-    st.session_state["start_datetime"] = pd.to_datetime(f"{start_date} {start_time}")
-    st.session_state["end_datetime"] = pd.to_datetime(f"{end_date} {end_time}")
+    # Lokale Eingaben → lokalisieren und in UTC speichern
+    start_local = TZ_LOCAL.localize(datetime.combine(start_date, start_time))
+    end_local = TZ_LOCAL.localize(datetime.combine(end_date, end_time))
+
+    st.session_state["start_datetime"] = to_utc(start_local)
+    st.session_state["end_datetime"] = to_utc(end_local)
 
 
 def filter_dataframe_by_time(df: pd.DataFrame) -> pd.DataFrame:
     df_copy = df.copy()
-    df_copy["timestamp_dt"] = pd.to_datetime(df_copy["timestamp"])
+
+    # Timestamp in UTC parsen (falls nicht schon datetime)
+    df_copy["timestamp_dt"] = pd.to_datetime(df_copy["timestamp"], utc=True)
+
+    # Zeitfilter (bereits in UTC)
     filtered_df = df_copy[
         (df_copy["timestamp_dt"] >= st.session_state["start_datetime"])
         & (df_copy["timestamp_dt"] <= st.session_state["end_datetime"])
@@ -451,7 +461,10 @@ def show_feedback_comments(df: pd.DataFrame):
         if not kommentar:
             continue  # Leere Kommentare überspringen
 
-        timestamp = row.get("timestamp", "")
+        timestamp_raw = row.get("timestamp_dt") or row.get("timestamp")
+        timestamp_dt = pd.to_datetime(timestamp_raw, utc=True)
+        timestamp_local = fmt_local(timestamp_dt)
+
         rating = int(row.get("bewertung", 0))
         gelernt = row.get("gelernt", 0)
 
@@ -460,6 +473,6 @@ def show_feedback_comments(df: pd.DataFrame):
         gelernt_str = "✅ Gelernt" if gelernt else "❌ Nicht gelernt"
 
         st.markdown(
-            f"**{timestamp}**  |  {rating_str}  |  {gelernt_str}\n\n_{kommentar}_"
+            f"**{timestamp_local}**  |  {rating_str}  |  {gelernt_str}\n\n_{kommentar}_"
         )
         st.divider()

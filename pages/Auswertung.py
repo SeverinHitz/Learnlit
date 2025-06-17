@@ -3,6 +3,9 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
+from utils.time_utils import TZ_LOCAL, to_utc
+
+
 from utils.google_utils import lade_worksheet_namen, lade_worksheet
 from utils.utils import reset_session_state_on_page_change
 from utils.auswertung_utils import (
@@ -11,6 +14,7 @@ from utils.auswertung_utils import (
     feedback_auswertung,
     zeitauswahl,
 )
+
 
 st.set_page_config(layout="wide")
 st.title("📊 Auswertung der LearnLit-Spiele")
@@ -43,11 +47,10 @@ spiele = {
 
 # ────────────────────────── Zeitauswahl ────────────────────────
 if "start_datetime" not in st.session_state and "end_datetime" not in st.session_state:
-    datetime_now = datetime.now()
-    default_start = datetime_now - timedelta(days=1)
-    default_end = datetime_now
-    st.session_state["start_datetime"] = default_start
-    st.session_state["end_datetime"] = default_end
+    now_local = datetime.now(TZ_LOCAL)
+    st.session_state["start_datetime"] = now_local - timedelta(days=1)
+    st.session_state["end_datetime"] = now_local
+
 zeitauswahl()
 
 # ────────────────────────── Tabs pro Spiel ────────────────────────

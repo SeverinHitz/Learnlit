@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 import streamlit as st
 import pandas as pd
+from utils.time_utils import now_utc, fmt_utc
 
 
 # ────────────────────────── Google Sheets ──────────────────────────
@@ -69,7 +70,7 @@ def save_compare_results_to_gsheet(
             ws.append_rows(old_rows)
 
     # ► Datenzeile zusammenbauen
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = timestamp = fmt_utc(now_utc())
     zeile = [timestamp, spielname or "", alter or ""]
 
     # Label-Zeitspalten füllen
@@ -112,7 +113,7 @@ def save_slider_results_to_gsheet(
 
     # Datenzeile speichern
     row = [
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        fmt_utc(now_utc()),
         scene,
         slider_values[0],  # S1
         slider_values[1],  # S4

@@ -6,6 +6,8 @@ import pandas as pd
 from datetime import datetime
 import streamlit as st
 
+from utils.time_utils import now_utc, fmt_utc
+
 
 def get_image_path(
     scene: str, s1: int, s4: int, image_dir: str = "data/slider"
@@ -95,7 +97,7 @@ def create_feedback_df(
     return pd.DataFrame(
         [
             {
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "timestamp": fmt_utc(now_utc()),
                 "scene": selected_scene,
                 "image": image_name,
                 "rating": rating,

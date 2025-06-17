@@ -1,5 +1,5 @@
 import streamlit as st
-from datetime import datetime
+from utils.time_utils import now_utc, fmt_utc
 import pandas as pd
 from pathlib import Path
 import os
@@ -35,7 +35,7 @@ def zeige_feedback_formular(sheet_name) -> None:
 
     if abgeschickt:
         feedback_data = {
-            "timestamp": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+            "timestamp": [fmt_utc(now_utc())],
             "bewertung": [bewertung],
             "gelernt": [gelernt],
             "kommentar": [kommentar],
