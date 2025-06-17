@@ -6,7 +6,7 @@ st.title("Landschaftsbeschützer:in Game")
 
 reset_session_state_on_page_change("Landschaftsdesigner")
 
-game_url = "https://severinhitz.github.io/WKT-Ebnat-Kappel-Game/"
+game_url = "https://severinhitz.github.io/WKT-Ebnat-Kappel-GDev/"
 
 # Session-State für Feedback verwalten
 if "spiel_geoeffnet" not in st.session_state:
