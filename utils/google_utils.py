@@ -91,10 +91,11 @@ def save_compare_results_to_gsheet(
 def save_slider_results_to_gsheet(
     scene: str,
     slider_values: list[int],
+    kosten: float,
     sheet_name: str = "Landschaftsdesigner",
     worksheet_name: str = "Sliderdaten",
 ):
-    """Speichert timestamp, Szene, und Sliderwerte (S1–S4) in ein Worksheet."""
+    """Speichert timestamp, Szene, Sliderwerte (S1, S4) und Schadenskosten in ein Worksheet."""
     sh = init_gsheet(sheet_name)
 
     try:
@@ -105,17 +106,19 @@ def save_slider_results_to_gsheet(
         ws = sh.add_worksheet(title=worksheet_name, rows="1000", cols="10")
         existing_headers = []
 
-    # Zielspalten
-    columns = ["timestamp", "scene", "slider1", "slider2", "slider3", "slider4"]
+    # Neue Zielspalten
+    columns = ["timestamp", "scene", "s1", "s4", "kosten"]
     if existing_headers != columns:
         ws.clear()
         ws.append_row(columns)
 
-    # Datenzeile
+    # Datenzeile speichern
     row = [
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         scene,
-        *slider_values,
+        slider_values[0],  # S1
+        slider_values[1],  # S4
+        round(kosten, 3),
     ]
     ws.append_row(row)
 

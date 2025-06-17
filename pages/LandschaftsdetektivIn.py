@@ -65,7 +65,15 @@ with st.sidebar:
     st.header("⚙️ Einstellungen")
 
     # Szenen-Auswahl
-    scene = st.selectbox("📸 Szene auswählen", ["Dorf", "See", "Stadt"], index=0)
+    scene = st.selectbox("📸 Szene auswählen", ["Dorf", "See"], index=0)
+
+    # Szene-Wechsel erkennen und Session-State zurücksetzen
+    if "last_scene" not in st.session_state:
+        st.session_state["last_scene"] = scene
+    elif st.session_state["last_scene"] != scene:
+        init_state()  # Session-State zurücksetzen
+        st.session_state["last_scene"] = scene  # Neue Szene merken
+        st.rerun()
 
     # Bildbreite anpassen
     image_w = st.slider(
@@ -132,10 +140,12 @@ img1_show, img2_show = draw_markers_on_images(
 
 col1, col2 = st.columns(2)
 with col1:
+    st.markdown("### 2025")
     click1 = streamlit_image_coordinates(
         img1_show, key=f"orig_{image_w}", width=image_w
     )
 with col2:
+    st.markdown("### 2050")
     click2 = streamlit_image_coordinates(
         img2_show, key=f"klima_{image_w}", width=image_w
     )
@@ -159,7 +169,7 @@ def handle_click(
     if (rel_x, rel_y) == st.session_state.get(key_last):
         return
 
-    # ► Für Treffer-Prüfung einmal in Original-Pixel umrechnen
+    # ► Für Treffer-Prüfung
     point = Point(rel_x, rel_y)
     hit = not gdf_diff_s[gdf_diff_s.contains(point)].empty
 
