@@ -7,6 +7,7 @@ from utils.google_utils import lade_worksheet_namen, lade_worksheet
 from utils.utils import reset_session_state_on_page_change
 from utils.auswertung_utils import (
     detective_auswertung,
+    designer_auswertung,
     feedback_auswertung,
     zeitauswahl,
 )
@@ -72,6 +73,5 @@ for i, (spiel_label, sheet_name) in enumerate(spiele.items()):
             feedback_auswertung(df)
         elif spiel_label == "🕵️ Landschaftsdetektiv:in":
             detective_auswertung(df, worksheet_name)
-
         elif spiel_label == "🎚️ Landschaftsdesigner:in":
-            pass
+            designer_auswertung(df)

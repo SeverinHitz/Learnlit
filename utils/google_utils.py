@@ -64,7 +64,6 @@ def save_compare_results_to_gsheet(
             if existing_data
             else []
         )
-        ws.clear()
         ws.append_row(all_columns)
         if old_rows:
             ws.append_rows(old_rows)
@@ -109,7 +108,6 @@ def save_slider_results_to_gsheet(
     # Neue Zielspalten
     columns = ["timestamp", "scene", "s1", "s4", "kosten"]
     if existing_headers != columns:
-        ws.clear()
         ws.append_row(columns)
 
     # Datenzeile speichern
@@ -139,7 +137,6 @@ def save_feedback_to_gsheet(
         ws = sh.worksheet(worksheet)
         existing = ws.get_all_values()
         if not existing or df.columns.tolist() != existing[0]:
-            ws.clear()
             ws.append_row(df.columns.tolist())
             existing_rows = 1
         else:

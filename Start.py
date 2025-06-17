@@ -20,4 +20,4 @@ pages_dir = "pages"
 if not os.path.exists(pages_dir):
     st.error(f"❌ Der Pages-Ordner '{pages_dir}' wurde nicht gefunden!")
 else:
-    st.sidebar.success("Seiten sind verfügbar. Bitte links auswählen.")
+    st.sidebar.success("Spiele sind verfügbar. Bitte links auswählen.")

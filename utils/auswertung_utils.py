@@ -309,7 +309,36 @@ def plot_all_points(df: pd.DataFrame, scene: str):
     st.image(img, caption="Alle gewählten Punkte")
 
 
-# ────────────────────────── 5. Raw DataFrame ──────────────────────────
+############################# Auswertungs-Funktionen für Landschaftsdesigner ############################
+
+
+def designer_auswertung(df: pd.DataFrame):
+    """
+    Führt die Auswertung für das Spiel 'Landschaftsdesigner:in' durch.
+    """
+    st.subheader("🎚️ Auswertung der Landschaftsdesigner:innen")
+
+    # Zeitfilter anwenden
+    filtered_df = filter_dataframe_by_time(df)
+    if filtered_df.empty:
+        st.info("Keine Daten im gewählten Zeitraum.")
+        return
+
+    # Normiere Spalten falls nötig (z. B. 'kosten' ist Komma statt Punkt)
+    filtered_df["kosten"] = (
+        filtered_df["kosten"].astype(str).str.replace(",", ".").astype(float)
+    )
+
+    # Plots
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("#### Revitalisierungsgrad (s1)")
+        st.bar_chart(filtered_df["s1"].value_counts().sort_index())
+    with col2:
+        st.markdown("#### Wasserabflussmenge (s4)")
+        st.bar_chart(filtered_df["s4"].value_counts().sort_index())
+
+    show_raw_data(filtered_df)
 
 
 ############################# Auswertungs-Funktionen für Feedback ############################
