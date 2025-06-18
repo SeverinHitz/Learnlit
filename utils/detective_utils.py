@@ -32,6 +32,24 @@ def load_images(scene: str) -> tuple[Image.Image, Image.Image]:
     )
 
 
+# ────────────────────────── Schwierigkeitstufe ──────────────────────
+def show_schwierigkeitstufe(scene: str) -> int:
+    dict_schwierigkeit = {
+        "See": "leicht",
+        "Tal": "mittel",
+        "Dorf": "schwer",
+    }
+    schwierigkkeit = dict_schwierigkeit.get(scene, None)
+    if schwierigkkeit is None:
+        return
+    if schwierigkkeit == "leicht":
+        st.success("Schwierigkeit: **leicht**", icon="✨")
+    elif schwierigkkeit == "mittel":
+        st.info("Schwierigkeit: **mittel**", icon="⚠️")
+    elif schwierigkkeit == "schwer":
+        st.warning("Schwierigkeit: **schwer**", icon="💪")
+
+
 # ────────────────────────── Bild-Skalierung ─────────────────────────
 @st.cache_data(show_spinner=False)
 def get_scene_scaled(scene: str, display_w: int):

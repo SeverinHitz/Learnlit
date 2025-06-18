@@ -7,7 +7,7 @@ Diese Plattform vereint interaktive Lernspiele und Visualisierungstools, die spi
 
 ## 🕹️ Games
 
-- **Landschaftsbeschützer:in**
+- **Landschaftsbeschützer:in**  
   ➡️ Streife durch Ebnat-Kappel wie in einem Pokémon-Spiel – entdecke markante Orte, sammle Wissen über heimische Pflanzen und kämpfe gegen invasive Arten (Neobiota) wie das Drüsige Springkraut oder die Goldrute!
 
 - **Landschaftsdetektiv:in**  

@@ -15,6 +15,7 @@ from utils.detective_utils import (
     load_lerntexte,
     plot_images_with_differences,
     get_scene_scaled,
+    show_schwierigkeitstufe,
 )
 from utils.utils import reset_session_state_on_page_change
 
@@ -66,6 +67,9 @@ with st.sidebar:
 
     # Szenen-Auswahl
     scene = st.selectbox("📸 Szene auswählen", ["Tal", "Dorf", "See"], index=0)
+
+    # Schwierigkeitstufe anzeigen
+    show_schwierigkeitstufe(scene)
 
     # Szene-Wechsel erkennen und Session-State zurücksetzen
     if "last_scene" not in st.session_state:
