@@ -64,7 +64,7 @@ with st.sidebar:
                     help="Aktiviere, um Hochwasser zu simulieren.",
                 )
                 val = max_val if enabled else min_val
-                norm = 1.0 if enabled else 0.0
+                norm = 1.0 if enabled else 0.1
             else:
                 st.markdown(f"#### {label}")
                 val = st.slider(
