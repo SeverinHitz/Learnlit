@@ -127,6 +127,13 @@ if len(st.session_state.gefunden) == len(lerntexte):
         zeige_feedback_formular("Landschaftsdetektiv")
 
 
+# ───────────────────── Treffer Meldung ──────────────────────────
+if st.session_state.letzte_meldung.startswith("❌"):
+    st.warning(st.session_state.letzte_meldung)
+else:
+    st.success(st.session_state.letzte_meldung)
+
+
 # ───────────────────── Bilder mit Markern ───────────────────
 img1_show, img2_show = draw_markers_on_images(
     img_orig_s,
@@ -209,12 +216,7 @@ rerun2 = handle_click(click2, img_klima_s, "last_click_klima", "Klimabild")
 if rerun1 or rerun2:
     st.rerun()
 
-# ───────────────────── Meldung & Lerntexte ─────────────────
-if st.session_state.letzte_meldung.startswith("❌"):
-    st.warning(st.session_state.letzte_meldung)
-else:
-    st.success(st.session_state.letzte_meldung)
-
+# ───────────────────── Lerntexte ─────────────────
 if st.session_state.gefunden:
     st.markdown(f"## 📚 Gelerntes ({len(st.session_state.gefunden)}/{len(lerntexte)})")
     for lbl in st.session_state.gefunden:
