@@ -194,8 +194,6 @@ def lade_worksheet(sheet_name: str, worksheet_name: str) -> pd.DataFrame:
         rows = data[1:]
         df = pd.DataFrame(rows, columns=headers)
 
-        print(df.head())  # Debug-Ausgabe
-
         for col in df.columns:
             if col.lower() in ["timestamp", "spielname", "punkte"]:
                 continue

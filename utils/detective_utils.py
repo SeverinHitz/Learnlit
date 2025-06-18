@@ -22,6 +22,46 @@ from utils.utils import get_base_path
 PIXEL_BUFFER = 5.0  # Pixel-Puffer für Klick-Regionen
 
 
+# ────────────────────────── Session-State init ─────────────────────
+def init_state() -> None:
+    st.session_state.update(
+        spiel_started=False,
+        feedback=False,
+        spielname="",
+        alter=None,
+        start_time=None,
+        gefunden=[],
+        all_pts=[],  # [(x, y, hit_bool), …]
+        found_data=pd.DataFrame(columns=["label", "sekunden_seit_start"]),
+        letzte_meldung="",
+        last_click_original=(None, None),
+        last_click_klima=(None, None),
+        last_pt_orig=None,
+        last_pt_klima=None,
+        balloons_done=False,
+        debug_mode=False,
+    )
+
+
+# ────────────────────────── Scene Session State Change ──────────────
+def reset_session_state_on_scene_change(scene: str) -> None:
+    st.session_state.update(
+        spiel_started=False,
+        feedback=False,
+        start_time=None,
+        gefunden=[],
+        all_pts=[],  # [(x, y, hit_bool), …]
+        found_data=pd.DataFrame(columns=["label", "sekunden_seit_start"]),
+        letzte_meldung="",
+        last_click_original=(None, None),
+        last_click_klima=(None, None),
+        last_pt_orig=None,
+        last_pt_klima=None,
+        balloons_done=False,
+        debug_mode=False,
+    )
+
+
 # ────────────────────────── Bild-I/O ────────────────────────────────
 @st.cache_resource
 def load_images(scene: str) -> tuple[Image.Image, Image.Image]:

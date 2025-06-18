@@ -10,6 +10,8 @@ from shapely.geometry import Point
 from streamlit_image_coordinates import streamlit_image_coordinates
 from streamlit_js_eval import streamlit_js_eval
 from utils.detective_utils import (
+    init_state,
+    reset_session_state_on_scene_change,
     get_base_path,
     draw_markers_on_images,
     load_lerntexte,
@@ -38,26 +40,6 @@ image_auto_w: int = int(win_w / 2)
 
 
 # ───────────────────── Session-State init ───────────────────
-def init_state() -> None:
-    st.session_state.update(
-        spiel_started=False,
-        feedback=False,
-        spielname="",
-        alter=0,
-        start_time=None,
-        gefunden=[],
-        all_pts=[],  # [(x, y, hit_bool), …]
-        found_data=pd.DataFrame(columns=["label", "sekunden_seit_start"]),
-        letzte_meldung="",
-        last_click_original=(None, None),
-        last_click_klima=(None, None),
-        last_pt_orig=None,
-        last_pt_klima=None,
-        balloons_done=False,
-        debug_mode=False,
-    )
-
-
 if "spiel_started" not in st.session_state:
     init_state()
 
@@ -66,7 +48,7 @@ with st.sidebar:
     st.header("⚙️ Einstellungen")
 
     # Szenen-Auswahl
-    scene = st.selectbox("📸 Szene auswählen", ["Tal", "Dorf", "See"], index=0)
+    scene = st.selectbox("📸 Szene auswählen", ["See", "Tal", "Dorf"], index=1)
 
     # Schwierigkeitstufe anzeigen
     show_schwierigkeitstufe(scene)
@@ -75,7 +57,7 @@ with st.sidebar:
     if "last_scene" not in st.session_state:
         st.session_state["last_scene"] = scene
     elif st.session_state["last_scene"] != scene:
-        init_state()  # Session-State zurücksetzen
+        reset_session_state_on_scene_change(scene)  # Session-State zurücksetzen
         st.session_state["last_scene"] = scene  # Neue Szene merken
         st.rerun()
 
@@ -83,7 +65,7 @@ with st.sidebar:
     image_w = st.slider(
         "🖼️ Bildbreite (px)",
         min_value=100,
-        max_value=800,
+        max_value=1200,
         value=image_auto_w,
         step=50,
     )
@@ -102,12 +84,26 @@ with st.sidebar:
 # ───────────────────── Spiel-Start ─────────────────────────
 if not st.session_state.spiel_started:
     st.subheader("👤 Spieler:in")
-    spielname = st.text_input("Spitzname oder Spielname", max_chars=20)
-    alter = st.number_input("Alter", min_value=5, max_value=100, step=1)
+    spielname = st.text_input(
+        "Spitzname oder Spielname",
+        max_chars=25,
+        value=st.session_state.get("spielname", ""),
+    )
+    alter = st.number_input(
+        "Alter",
+        min_value=5,
+        max_value=100,
+        step=1,
+        value=st.session_state.get("alter", 10),
+        help="Dein Alter (für die Statistik)",
+    )
 
     if st.button("▶️ Spiel starten"):
-        if not spielname:
+        if not spielname or spielname.strip() == "":
             st.warning("Bitte gib einen Spielnamen ein.")
+            st.stop()
+        if alter is None or alter < 5 or alter > 100:
+            st.warning("Bitte gib ein gültiges Alter ein (5-100 Jahre).")
             st.stop()
         st.session_state["spiel_started"] = True
         st.session_state["start_time"] = time.time()
