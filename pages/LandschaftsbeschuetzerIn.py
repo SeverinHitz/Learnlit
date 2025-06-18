@@ -2,7 +2,7 @@ import streamlit as st
 from utils.utils import reset_session_state_on_page_change
 
 
-st.title("Landschaftsbeschützer:in Game")
+st.title("🛡️ Landschaftsbeschützer:in Game")
 
 reset_session_state_on_page_change("Landschaftsdesigner")
 
