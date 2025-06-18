@@ -77,7 +77,7 @@ def show_schwierigkeitstufe(scene: str) -> int:
     dict_schwierigkeit = {
         "See": "leicht",
         "Tal": "mittel",
-        "Dorf": "schwer",
+        "Dorf": "sehr schwer",
     }
     schwierigkkeit = dict_schwierigkeit.get(scene, None)
     if schwierigkkeit is None:
@@ -86,8 +86,8 @@ def show_schwierigkeitstufe(scene: str) -> int:
         st.success("Schwierigkeit: **leicht**", icon="✨")
     elif schwierigkkeit == "mittel":
         st.info("Schwierigkeit: **mittel**", icon="⚠️")
-    elif schwierigkkeit == "schwer":
-        st.warning("Schwierigkeit: **schwer**", icon="💪")
+    elif schwierigkkeit == "sehr schwer":
+        st.warning("Schwierigkeit: **sehr schwer**", icon="💪")
 
 
 # ────────────────────────── Bild-Skalierung ─────────────────────────

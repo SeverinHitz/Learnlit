@@ -8,7 +8,7 @@ import pytz
 import numpy as np
 from scipy.ndimage import gaussian_filter
 from utils.utils import get_base_path
-from utils.time_utils import fmt_local, to_utc, TZ_LOCAL
+from utils.time_utils import fmt_local, to_utc, TZ_LOCAL, to_local
 
 
 def zeitauswahl() -> None:
@@ -16,8 +16,8 @@ def zeitauswahl() -> None:
     Zeitauswahl mit Formular. Speichert erst bei Klick auf 'Übernehmen'-Button.
     """
 
-    start_datetime = st.session_state.get("start_datetime")
-    end_datetime = st.session_state.get("end_datetime")
+    start_datetime = to_local(st.session_state.get("start_datetime"))
+    end_datetime = to_local(st.session_state.get("end_datetime"))
 
     with st.form("zeitfilter_form", border=True):
         st.markdown("### 🕒 Zeitraum auswählen")
@@ -378,11 +378,18 @@ def feedback_auswertung(
     filtered_df = filter_dataframe_by_time(df)
     st.markdown("---")
 
-    # Erhöhe Bewertung um 1 weil 0-4 verwendet wird
-    if "bewertung" in filtered_df.columns:
-        filtered_df["bewertung"] = filtered_df["bewertung"].apply(
-            lambda x: x + 1 if pd.notnull(x) else x
-        )
+    # Versuche 'bewertung' in Integer zu konvertieren, ungültige Werte werden zu NaN
+    filtered_df["bewertung"] = pd.to_numeric(filtered_df["bewertung"], errors="coerce")
+
+    # Dann +1 anwenden (nur auf numerische, gültige Werte)
+    filtered_df["bewertung"] = filtered_df["bewertung"].apply(
+        lambda x: x + 1 if pd.notnull(x) else x
+    )
+
+    # Konvertiere 'gelernt' in Integer (0 oder 1), ungültige Werte werden NaN
+    filtered_df["gelernt"] = (
+        pd.to_numeric(filtered_df["gelernt"], errors="coerce").fillna(0).astype(int)
+    )
 
     # 1. Metriken: Ø Bewertung und Gelernt-Anteil
     plot_feedback_metrics(filtered_df)
@@ -408,6 +415,7 @@ def plot_feedback_metrics(df: pd.DataFrame):
     st.subheader("🔢 Kennzahlen")
 
     avg_rating = df["bewertung"].mean().round(2) if not df.empty else -2
+
     gelernt_pct = (
         (df["gelernt"].sum() / len(df) * 100).round(1) if not df.empty else "-"
     )
