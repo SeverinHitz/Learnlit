@@ -12,9 +12,7 @@ st.markdown(
     Die Spiele finden sich in der linken Seitenleiste. Bitte wähle ein Spiel aus, um zu starten.
     """
 )
-
 st.markdown("---")
-
 st.markdown("### 📚 Informationen zu den Spielen")
 
 # Info-Text oder Einführung
