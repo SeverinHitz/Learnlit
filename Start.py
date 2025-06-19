@@ -9,9 +9,11 @@ st.set_page_config(page_title="Start", layout="wide")
 st.markdown(
     """
     ### Willkommen zu den Spielen der WKT Ebnat-Kappel!
-    Die Spiele finden sich in der linken Seitenleiste. Bitte wähle ein Spiel aus, um zu starten.
     """
 )
+st.info("""
+    Die Spiele finden sich in der linken Seitenleiste. Bitte wähle ein Spiel aus, um zu starten.
+        """)
 st.markdown("---")
 st.markdown("### 📚 Informationen zu den Spielen")
 
