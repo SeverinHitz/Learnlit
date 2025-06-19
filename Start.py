@@ -6,9 +6,9 @@ from pathlib import Path
 
 st.set_page_config(page_title="Start", layout="wide")
 
-st.markdown(
+st.header(
     """
-    ### Willkommen zu den Spielen der WKT Ebnat-Kappel!
+    🏘️ Willkommen zu den Spielen der WKT Ebnat-Kappel!
     """
 )
 st.info("""
